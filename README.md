@@ -48,7 +48,7 @@
 1. ב-Claude נכנסים ל-**Customize** ← **Plugins**.
 2. לוחצים **Add** ← **Add marketplace**, ומזינים:
    ```
-   pinihil/quicker-claude-plugins
+   quicker-il/quicker-claude-plugins
    ```
 3. ברשימת התוספים בוחרים **Quicker Appraisal Templates** ולוחצים **Install**.
 4. פותחים את התוסף, עוברים ללשונית **Connectors** ולוחצים **Connect** ליד Quicker.
@@ -80,7 +80,7 @@
 ### Claude Code
 
 ```bash
-claude plugin marketplace add pinihil/quicker-claude-plugins
+claude plugin marketplace add quicker-il/quicker-claude-plugins
 claude plugin install quicker-appraisal@quicker
 ```
 
@@ -93,7 +93,7 @@ claude plugin install quicker-appraisal@quicker
 - **חשבון אישי:** ב-**Customize** ← **Plugins** פותחים את ה-marketplace ומפעילים **Sync automatically**,
   ואז כל עדכון מגיע לבד. בלי זה - לוחצים מדי פעם **Check for updates**.
 - **חשבון ארגוני עם התקנה מרוכזת:** מנהל החשבון מעלה את קובץ הגרסה החדשה מעמוד
-  [Releases](https://github.com/pinihil/quicker-claude-plugins/releases). הגרסה המותקנת מופיעה בעמוד התוסף
+  [Releases](https://github.com/quicker-il/quicker-claude-plugins/releases). הגרסה המותקנת מופיעה בעמוד התוסף
   בהגדרות הארגון, והשינויים בכל גרסה מופיעים ב-[CHANGELOG](plugins/quicker-appraisal/CHANGELOG.md).
 
 ---
