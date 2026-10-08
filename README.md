@@ -1,3 +1,5 @@
+<div dir="rtl">
+
 # Quicker - תבניות שומה ל-Claude
 
 תוסף ל-Claude שהופך דוח שמאות בוורד לתבנית מסמך של Quicker - בלי לגעת בעיצוב.
@@ -163,3 +165,5 @@ claude plugin install quicker-appraisal@quicker
 ---
 
 © Quicker. כל הזכויות שמורות. התבניות שאתם יוצרים שייכות לכם.
+
+</div>
