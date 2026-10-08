@@ -70,7 +70,7 @@
      **Plugins & skills** ← **Policy** מוודאים ש-**User-created skills** פעיל, וכל עובד מתקין לפי
      ההוראות לחשבון אישי.
    - **התקנה מרוכזת לכולם:** מורידים את קובץ ה-zip של הגרסה האחרונה מעמוד
-     [Releases](https://github.com/pinihil/quicker-claude-plugins/releases), ואז **Organization settings** ←
+     [Releases](https://github.com/quicker-il/quicker-claude-plugins/releases), ואז **Organization settings** ←
      **Plugins & skills** ← **Add** ← **Upload a plugin**, ובוחרים **Installed by default**.
      בדרך הזו עדכונים לא מגיעים לבד - בכל גרסה חדשה מעלים את הקובץ החדש (**Upload new version** בתפריט
      של התוסף).
