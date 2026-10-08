@@ -1,0 +1,11 @@
+{
+  "name": "quicker-template-render-check-v3",
+  "private": true,
+  "type": "module",
+  "description": "Validation harness for Quicker templates - engine v3.2.1 (Quicker production / master)",
+  "dependencies": {
+    "easy-template-x": "3.2.1",
+    "easy-template-x-angular-expressions": "0.1.0",
+    "jszip": "3.10.1"
+  }
+}

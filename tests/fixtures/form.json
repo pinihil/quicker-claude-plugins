@@ -1,0 +1,30 @@
+{
+  "id": "fixture-form",
+  "name": "fixture",
+  "title": "טופס בדיקה (פיקטיבי)",
+  "isSystem": true,
+  "isDefault": true,
+  "version": 1,
+  "metadata": {
+    "sections": {
+      "propertyFields": {"title": "פרטי הנכס"},
+      "borrowerFields": {"title": "לווים"}
+    },
+    "projectFieldsMap": {}
+  },
+  "schema": {
+    "propertyFields": [
+      {"name": "visitDate", "label": "תאריך הביקור", "type": "date"},
+      {"name": "buildingType", "label": "סוג הבנייה", "type": "select", "values": ["בנייה רוויה", "צמוד קרקע"]},
+      {"name": "hasElevator", "label": "יש מעלית", "type": "checkbox"},
+      {"name": "marketValue", "label": "שווי שוק", "type": "currency"},
+      {"name": "photos", "label": "תמונות הנכס", "type": "image", "limit": 6}
+    ],
+    "borrowerFields": [
+      {"title": "לווים", "repeatable": true, "groupName": "borrowers", "fields": [
+        {"name": "borrowerName", "label": "שם הלווה", "type": "text"},
+        {"name": "borrowerId", "label": "ת.ז", "type": "text"}
+      ]}
+    ]
+  }
+}

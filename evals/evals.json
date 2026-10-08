@@ -1,0 +1,26 @@
+{
+  "skill_name": "quicker-appraisal-template",
+  "evals": [
+    {
+      "id": 1,
+      "name": "filled-bank-report",
+      "prompt": "צירפתי דוח שמאות אמיתי שהפקנו לבנק מזרחי טפחות (filled_bank_report.docx). אני רוצה להפוך אותו לתבנית Quicker: שכל הנתונים שמשתנים מתיק לתיק יוחלפו במשתנים מטופס השומה המערכתי 'שומת מקרקעין', עם תנאים לחלקים שלא תמיד מופיעים ולולאות איפה שיש רשימות. חשוב לי שהעיצוב יישאר בדיוק אותו דבר.",
+      "expected_output": "filled_bank_report_template.docx with p.ad.*/p.* tags replacing the concrete values, loops for borrowers/linkages/permits/plans/owners, conditions for optional lines and sections, same tables/text boxes/header/footer; lint 0 errors; renders on engine v3; re-rendering with the original data reproduces the report.",
+      "files": ["filled_bank_report.docx"]
+    },
+    {
+      "id": 2,
+      "name": "marked-report",
+      "prompt": "סימנתי בתוך הוורד עם [[ ]], הערה אחת והדגשות צהובות איפה צריכים להיות משתנים, תנאים ולולאות (marked_report.docx). תבנה ממנו תבנית לקוויקר לפי טופס 'שומת מקרקעין' המערכתי.",
+      "expected_output": "Every [[...]] instruction resolved (or listed as unmatched, e.g. licence number), comment and highlights mapped and removed, permits table row loop, extended/short appraisal conditions, elevator yes/no, deviations if/else, owners loop from the first nesach, static declaration untouched; lint 0 errors; renders.",
+      "files": ["marked_report.docx"]
+    },
+    {
+      "id": 3,
+      "name": "blank-template",
+      "prompt": "יש לי טמפלייט ריק של דוח שמאות לבנק (blank_bank_template.docx) - יש בו רק כותרות, תוויות ושדות ריקים, בלי ערכים. תמקם בו משתנים מטופס 'שומת מקרקעין' המערכתי של Quicker במקומות הנכונים, כולל בטבלאות ובתיבות הטקסט למעלה, ותוסיף תנאים איפה שצריך.",
+      "expected_output": "Tags placed in empty slots after labels, in empty table cells (finish table, addressee table, borrowers, plans, permits, valuation table) and in the header text box; conditions for optional lines; lint 0 errors; renders.",
+      "files": ["blank_bank_template.docx"]
+    }
+  ]
+}

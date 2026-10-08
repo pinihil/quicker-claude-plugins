@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "quicker": {
+      "type": "http",
+      "url": "https://app.quicker.co.il/api/mcp"
+    }
+  }
+}

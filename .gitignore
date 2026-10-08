@@ -1,0 +1,20 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+__MACOSX/
+.vscode/
+.idea/
+
+# Python / Node
+__pycache__/
+*.pyc
+node_modules/
+
+# Quicker-internal image plugin - local testing only, never published
+plugins/*/skills/*/scripts/quicker/
+
+# build output
+dist/
+evals/inputs/
+evals/workspace/
