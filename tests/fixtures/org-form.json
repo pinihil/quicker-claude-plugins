@@ -1,0 +1,244 @@
+{
+  "id": "00000000-0000-4000-8000-0000000000f1",
+  "name": "office-bank-form",
+  "title": "שומה לבנק - משרד בדיקה (פיקטיבי)",
+  "isSystem": false,
+  "isDefault": false,
+  "enabled": true,
+  "version": 4,
+  "appraisalTypes": [
+    "שומה לבנק"
+  ],
+  "computedFields": [],
+  "metadata": {
+    "sections": {
+      "generalFields": {
+        "title": "פרטים כלליים",
+        "icon": "fa-user-o"
+      },
+      "propertyFields": {
+        "title": "פרטי הנכס",
+        "icon": "fa-home"
+      },
+      "legalFields": {
+        "title": "מצב משפטי",
+        "icon": "fa-file-text-o"
+      },
+      "valueFields": {
+        "title": "תחשיב ושווי",
+        "icon": "fa-edit"
+      }
+    },
+    "formGroups": {
+      "version": 2,
+      "tabs": [
+        {
+          "key": "visit",
+          "title": "ביקור בנכס",
+          "sections": [
+            "propertyFields"
+          ]
+        },
+        {
+          "key": "appraisal",
+          "title": "פרטי שומה",
+          "sections": [
+            "generalFields",
+            "legalFields",
+            "valueFields"
+          ]
+        }
+      ]
+    },
+    "projectFieldsMap": {
+      "referrer": "referrer",
+      "determinesDate": "determinesDate"
+    }
+  },
+  "schema": {
+    "generalFields": [
+      {
+        "fields": [
+          {
+            "name": "referrer",
+            "type": "selectOther",
+            "label": "גורם מפנה",
+            "values": [
+              "בנק א",
+              "בנק ב"
+            ]
+          },
+          {
+            "name": "loanNumber",
+            "type": "text",
+            "label": "מספר תיק הלוואה",
+            "class": "col-md-4 col-sm-6 col-xs-12"
+          },
+          {
+            "name": "determinesDate",
+            "type": "date",
+            "label": "המועד הקובע",
+            "class": "col-md-4 col-sm-6 col-xs-12"
+          },
+          {
+            "name": "reportKind",
+            "type": "radio",
+            "label": "סוג",
+            "values": [
+              "שומה מקוצרת",
+              "שומה מורחבת"
+            ]
+          }
+        ]
+      },
+      {
+        "repeatable": true,
+        "groupName": "borrowers",
+        "title": "לווים",
+        "fields": [
+          {
+            "name": "borrowerName",
+            "type": "text",
+            "label": "שם הלווה",
+            "class": "col-md-4 col-sm-6 col-xs-12"
+          },
+          {
+            "name": "borrowerId",
+            "type": "text",
+            "label": "ת.ז",
+            "class": "col-md-4 col-sm-6 col-xs-12"
+          }
+        ]
+      }
+    ],
+    "propertyFields": [
+      {
+        "fields": [
+          {
+            "name": "visitDate",
+            "type": "date",
+            "label": "תאריך הביקור בנכס",
+            "class": "col-md-4 col-sm-6 col-xs-12"
+          },
+          {
+            "name": "floor",
+            "type": "selectOther",
+            "label": "קומה",
+            "values": [
+              "קרקע",
+              "1",
+              "2",
+              "3"
+            ],
+            "systemPath": "p.floor"
+          },
+          {
+            "name": "livingRoomFloorType",
+            "type": "selectOther",
+            "label": "סוג ריצוף בסלון",
+            "values": [
+              "קרמיקה",
+              "פרקט"
+            ]
+          },
+          {
+            "name": "apartmentArea",
+            "type": "currency",
+            "label": "שטח הדירה",
+            "suffix": "מ\"ר"
+          },
+          {
+            "name": "oldNotes",
+            "type": "textarea",
+            "label": "הערות ישנות",
+            "hidden": true
+          },
+          {
+            "name": "photos",
+            "type": "image",
+            "label": "תמונות הנכס",
+            "limit": 6
+          }
+        ]
+      }
+    ],
+    "legalFields": [
+      {
+        "fields": [
+          {
+            "name": "typeZchut",
+            "type": "checkboxList",
+            "label": "סוג הזכות",
+            "values": [
+              "בעלות",
+              "חכירה"
+            ]
+          }
+        ]
+      },
+      {
+        "repeatable": true,
+        "groupName": "extract",
+        "title": "פירוט נסח טאבו",
+        "fields": [
+          {
+            "name": "extractDate",
+            "type": "date",
+            "label": "תאריך הנסח"
+          },
+          {
+            "repeatable": true,
+            "groupName": "extractOwners",
+            "subTitle": "בעלים",
+            "fields": [
+              {
+                "name": "ownerName",
+                "type": "text",
+                "label": "שם הבעלים"
+              },
+              {
+                "name": "ownerShare",
+                "type": "text",
+                "label": "החלק בנכס"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "valueFields": [
+      {
+        "fields": [
+          {
+            "name": "marketValue",
+            "type": "currency",
+            "label": "שווי שוק",
+            "aiConfig": {
+              "prompt": "אל תמלא - שיקול דעת של השמאי."
+            }
+          },
+          {
+            "name": "leaseEnd",
+            "type": "date",
+            "label": "סיום החכירה",
+            "if": "project.additionalDetails.typeZchut && project.additionalDetails.typeZchut.includes('חכירה')"
+          }
+        ]
+      },
+      {
+        "title": "שומה מורחבת",
+        "if": "project.additionalDetails.reportKind == 'שומה מורחבת'",
+        "fields": [
+          {
+            "name": "extendedNotes",
+            "type": "textarea",
+            "label": "הערות לשומה המורחבת",
+            "aiConfig": {
+              "prompt": "מהדוח: הערות שמופיעות רק בשומה המורחבת. אם אין - השאר ריק."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

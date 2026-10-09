@@ -1,14 +1,27 @@
 {
   "name": "quicker-appraisal",
-  "displayName": "Quicker Appraisal Templates",
-  "version": "1.0.0",
-  "description": "Turn Israeli real-estate appraisal Word reports into Quicker document templates: variables from your live Quicker form, conditions, loops, images - linted and test-rendered before delivery. הופך דוחות שמאות בוורד לתבניות מסמכים של Quicker.",
+  "displayName": "Quicker Appraisal",
+  "version": "1.1.0",
+  "description": "Quicker appraisal skills: turn Israeli real-estate appraisal Word reports into Quicker document templates (variables from your live form, conditions, loops, images - linted and test-rendered), and build or update your office's own appraisal form from your report formats, checked against the Israeli appraisal standards - every form change planned, approved by you, and reversible. הופך דוחות שמאות לתבניות Quicker ובונה את טופס השומה של המשרד.",
   "author": {
     "name": "Quicker",
     "url": "https://app.quicker.co.il"
   },
   "homepage": "https://app.quicker.co.il",
-  "repository": "https://github.com/pinihil/quicker-claude-plugins",
+  "repository": "https://github.com/quicker-il/quicker-claude-plugins",
   "license": "Proprietary",
-  "keywords": ["quicker", "appraisal", "real-estate", "word", "docx", "template", "שמאות", "תבניות"]
+  "keywords": [
+    "quicker",
+    "appraisal",
+    "real-estate",
+    "word",
+    "docx",
+    "template",
+    "שמאות",
+    "תבניות",
+    "תקני שמאות",
+    "form",
+    "טופס שומה",
+    "standards"
+  ]
 }

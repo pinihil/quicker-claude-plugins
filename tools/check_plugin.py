@@ -24,6 +24,8 @@ FORBIDDEN_NAMES = {".DS_Store", "Thumbs.db", "desktop.ini", "__MACOSX", "__pycac
 # Quicker-internal code that must never reach the public repository
 PRIVATE_FILES = {"word-image-plugin.cjs", "word-image-plugin.js", "word-loop-plugin.js", "word-expressions.js"}
 MAX_FILE = 256 * 1024
+# Scripts several skills ship a copy of; check_plugin requires the copies to be identical.
+SHARED_SCRIPTS = ("docx_outline.py", "docxlib.py")
 MAX_FILES = 512
 
 errors, warnings = [], []
@@ -185,6 +187,20 @@ def check_plugin(entry, args):
             err(f"{rel(smd)}: description longer than 1024 characters")
         if "<this skill dir>" in open(smd, encoding="utf-8").read():
             err(f"{rel(smd)}: use ${{CLAUDE_SKILL_DIR}} for script paths")
+
+    # scripts shared between skills (each skill ships its own copy, so it also works installed alone):
+    # the copies must stay identical
+    copies = {}
+    for sk in sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []:
+        scripts = os.path.join(sdir, sk, "scripts")
+        for fn in SHARED_SCRIPTS:
+            fp = os.path.join(scripts, fn)
+            if os.path.exists(fp):
+                copies.setdefault(fn, []).append(fp)
+    for fn, paths in copies.items():
+        bodies = {open(fp, "rb").read() for fp in paths}
+        if len(bodies) > 1:
+            err(f"{fn}: the copies differ ({', '.join(rel(p) for p in paths)}) - change one, copy it to the others")
 
     # files (what git would commit: tracked + untracked-not-ignored; plain walk outside a git checkout)
     if os.path.isdir(os.path.join(pdir, "bin")):
