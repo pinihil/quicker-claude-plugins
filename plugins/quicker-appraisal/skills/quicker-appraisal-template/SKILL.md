@@ -248,8 +248,14 @@ python3 $S/validate.py out/<name>_template.docx work/catalog.json work/ --report
   from apply_plan's `counts`, not from memory); the validation result; anything that needs a decision
   (values with no matching field, ambiguous choices, conditions you inferred rather than were told);
   bugs found in pre-existing tags.
-- Next step for the user: upload in Quicker (הגדרות -> טפסי שומה מותאמים -> תבניות מסמכים) or open in
+- Next step for the user: upload in Quicker (הגדרות ← טפסי שומה מותאמים ← תבניות מסמכים) or open in
   Word with the Quicker add-in and run "זיהוי ביטויים".
+- **Values with no field** (`unmatched` marked חשוב): offer, in one line, to add them to the office's
+  form with the **quicker-appraisal-form** skill (it plans the fields from this report, the user approves,
+  Quicker applies). Keep `work/plan.json` and the outline - that skill starts from them. After the form
+  changes, rebuild the catalog (`get_word_template_variables` + `get_form_template` again), map the
+  values in a follow-up plan on the original report, and validate again. Only for an office form: a
+  system form is copied for the office first, and the template must then be uploaded to that copy.
 
 ## Other entry points
 

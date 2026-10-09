@@ -16,7 +16,7 @@ form's catalog; names below are from the system form "שומת מקרקעין" a
 
 | family | clues in the text | notes |
 |---|---|---|
-| בנק / משכנתא (בטוחה לאשראי, often "תקן 19") | לכבוד בנק..., סניף, לידי, מס' הלוואה, לווים, שווי למימוש מהיר, ערך כינון, "הערות לתשומת לב הבנק" | each bank has its own layout; the form switches fields by `p.ad.referrer` |
+| בנק / משכנתא (residential mortgage - **not** standard 19, which excludes it; a bank may still ask for "שומה מורחבת עפ\"י תקן 19"; credit collateral for non-residential loans is standard 19) | לכבוד בנק..., סניף, לידי, מס' הלוואה, לווים, שווי למימוש מהיר, ערך כינון, "הערות לתשומת לב הבנק" | each bank has its own layout; the form switches fields by `p.ad.referrer` |
 | היטל השבחה / ועדה מקומית | תכנית משביחה, מצב קודם / מצב חדש, מימוש, ועדה מקומית | before/after values, plan tables |
 | מס שבח / מיסוי מקרקעין | יום המכירה, יום הרכישה, שווי ליום... | |
 | ירושה / גירושין / פירוק שיתוף | עיזבון, יורשים, איזון משאבים, שווי חלקו של | ownership shares, often several properties |
