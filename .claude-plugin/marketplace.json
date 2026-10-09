@@ -9,7 +9,7 @@
     {
       "name": "quicker-appraisal",
       "source": "./plugins/quicker-appraisal",
-      "description": "Turn appraisal Word reports into Quicker document templates. הופך דוחות שמאות בוורד לתבניות מסמכים של Quicker."
+      "description": "Appraisal Word reports into Quicker templates, and the office's own appraisal form built from its reports and the appraisal standards. תבניות מסמכים וטופס שומה מותאם ב-Quicker."
     }
   ]
 }
