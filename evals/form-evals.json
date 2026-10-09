@@ -1,0 +1,71 @@
+{
+ "skill_name": "quicker-appraisal-form",
+ "evals": [
+  {
+   "id": 1,
+   "name": "handoff-unmatched-values",
+   "prompt": "מיפינו את דוח הבנק המצורף (bank_report.docx) לתבנית Quicker, ובסוף נשארו כמה ערכים בלי משתנה - הם מופיעים ב-template_plan.json תחת unmatched. תוסיף לטופס של המשרד ('שומת מקרקעין - משרד בדיקה') את מה שצריך כדי שגם הם יתמלאו מ-Quicker.",
+   "expected_output": "A plan on the office form (not the system form) adding kitchen floor type and size next to the other finish fields, with the sibling options and AI Fill prompts; the signer's title and the standard-9 wording stay fixed text; conditions flagged by the template's decisions fixed and labelled; apply-off said before the approval question.",
+   "files": [
+    "bank_report.docx",
+    "template_plan.json",
+    "form.json",
+    "connector_tools.md"
+   ],
+   "assertions": [
+    "the plan came back pending with no rejected operation",
+    "the final message does not claim the form was changed",
+    "the final message says apply is not enabled and how to proceed",
+    "adds a kitchen floor type field",
+    "adds a kitchen floor size field",
+    "kitchen fields go to propertyFields next to the other finish fields",
+    "kitchen floor type reuses the sibling options",
+    "every new field has an AI Fill prompt",
+    "the signer's title and the standard-9 wording don't become fields",
+    "the plan summary is shown verbatim"
+   ]
+  },
+  {
+   "id": 2,
+   "name": "standard19-gap",
+   "prompt": "אנחנו מתחילים לעשות שומות לבטוחה לאשראי לבנק עסקי, לפי תקן 19, על הטופס של המשרד ('שומת מקרקעין - משרד בדיקה'). עוד אין לנו דוח מוכן לסוג הזה. מה חסר לנו בטופס כדי לעמוד בתקן? תכין את השינויים לטופס.",
+   "expected_output": "A standard-19 gap report with sources (missing / partial / present), a plan of additions behind one switch so the office's mortgage projects don't change, judgement fields told not to be filled by AI Fill, and findings for default texts and org lists that ops can't change.",
+   "files": [
+    "form.json",
+    "connector_tools.md"
+   ],
+   "assertions": [
+    "the plan came back pending with no rejected operation",
+    "the final message does not claim the form was changed",
+    "the final message says apply is not enabled and how to proceed",
+    "adds a collateral value field (ערך למטרת בטוחה)",
+    "adds realisation taxes (מס שבח and היטל השבחה)",
+    "adds soil contamination",
+    "adds non-conforming uses",
+    "every new field has an AI Fill prompt",
+    "cites standard 19 sections in the message",
+    "type-specific fields are shown only when relevant (condition on every new field added to a section)",
+    "restraint: at most 35 operations",
+    "the plan summary is shown verbatim"
+   ]
+  },
+  {
+   "id": 3,
+   "name": "small-option-change",
+   "prompt": "תוסיף בטופס של המשרד לגורם המפנה את 'בנק ירושלים', ולסוג ההלוואה את 'משכנתא הפוכה'.",
+   "expected_output": "One add_options op on loanType; no op on referrer (an organization list) - the user is sent to the settings for בנק ירושלים and told which bank-specific fields a new referrer doesn't get.",
+   "files": [
+    "form.json",
+    "connector_tools.md"
+   ],
+   "assertions": [
+    "the plan came back pending with no rejected operation",
+    "the final message does not claim the form was changed",
+    "the final message says apply is not enabled and how to proceed",
+    "plans add_options 'משכנתא הפוכה' on loanType",
+    "no op on referrer (organization list)",
+    "tells the user בנק ירושלים is added in the settings option lists"
+   ]
+  }
+ ]
+}

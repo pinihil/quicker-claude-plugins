@@ -1,0 +1,4088 @@
+{
+ "version": "2026-10",
+ "about": "Data items an appraisal form should capture, per appraisal type. level: required = the law or a standard requires it in the report; conditional = required when the case applies; recommended = standard practice / a standard's recommendation / the bank's or authority's practice. basis cites the source (see references/standards.md). match = words that show the form already holds the item (compared with field labels and names; \"abc*\" = a word starting with abc; words of 4 letters or fewer must be whole words). partial = words that show something close but not the same (a free-text box instead of a table, a plan instead of a sketch) - reported as ~. suggest = a field to propose when missing (name, type, section hint). Section hints: general, visit, building, property, planning, legal, valuation, declarations. parts (optional) = {part name: patterns} for a multi-part item - each part must appear in the found field or its children, or the item is only partly there.",
+ "types": {
+  "base": {
+   "title": "כל שומה (תקנות האתיקה + תקן 1.1 + תקני הסעיפים)",
+   "when": "always - every appraisal report",
+   "valuationDate": "המועד הקובע - fixed wording; visit at most 3 months before the report",
+   "notes": [
+    "תוספת תקנות האתיקה היא מינימום חובה בחוק; התקנים הם נורמה מקצועית - סטייה מותרת אם נרשמה עם נימוק (חוץ מתקן 19 §4.9-4.18).",
+    "הגרסה החלה נקבעת לפי תאריך החתימה. תקן 9.1 (שטח דירה) חל על שומות שייחתמו מ-1.1.2027."
+   ],
+   "items": [
+    {
+     "id": "reportClass",
+     "label": "סוג השומה בכותרת (מלאה / מקיפה / חוות דעת מומחה / מבוססת הנחה)",
+     "level": "required",
+     "basis": [
+      "1.1 §4"
+     ],
+     "match": [
+      "סוג השומה",
+      "שומה מלאה",
+      "שומה מקיפה",
+      "סוג הדוח",
+      "reportClass"
+     ],
+     "suggest": {
+      "name": "reportClass",
+      "type": "select",
+      "section": "general",
+      "values": [
+       "שומת מקרקעין מלאה",
+       "שומת מקרקעין מקיפה",
+       "חוות דעת של מומחה",
+       "שומה מבוססת הנחה"
+      ]
+     },
+     "note": "בטופס המערכתי יש extanded (מקוצרת/מורחבת) - זה פורמט בנק, לא הסיווג של תקן 1.1"
+    },
+    {
+     "id": "reportDate",
+     "label": "תאריך השומה (סיום וחתימה)",
+     "level": "required",
+     "basis": [
+      "1.1 §6.1"
+     ],
+     "match": [
+      "תאריך השומה",
+      "תאריך הדוח",
+      "תאריך הפקת",
+      "documentDate",
+      "תאריך חתימה"
+     ],
+     "suggest": {
+      "name": "reportDate",
+      "type": "date",
+      "section": "general"
+     }
+    },
+    {
+     "id": "orderer",
+     "label": "מזמין השומה - שם ותפקיד",
+     "level": "required",
+     "basis": [
+      "1.1 §6.2"
+     ],
+     "match": [
+      "מזמין",
+      "orderer"
+     ],
+     "suggest": {
+      "name": "ordererName",
+      "type": "text",
+      "section": "general"
+     }
+    },
+    {
+     "id": "ordererRelation",
+     "label": "זיקת המזמין לנכס",
+     "level": "required",
+     "basis": [
+      "1.1 §6.2",
+      "19",
+      "20"
+     ],
+     "match": [
+      "זיקת המזמין",
+      "קשר המזמין",
+      "זיקה לנכס",
+      "appraisalOrderer"
+     ],
+     "suggest": {
+      "name": "ordererRelation",
+      "type": "selectOther",
+      "section": "general",
+      "values": [
+       "בעלים",
+       "קונה",
+       "מוכר",
+       "גורם מממן",
+       "בית משפט",
+       "רשות",
+       "לא ידוע"
+      ]
+     },
+     "note": "בתקנים 19 ו-20: אם הזיקה אינה ידועה - יירשם"
+    },
+    {
+     "id": "purpose",
+     "label": "מטרת השומה",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (5)",
+      "1.1 §6.2"
+     ],
+     "match": [
+      "מטרת השומה",
+      "appraisalPurpose"
+     ],
+     "suggest": {
+      "name": "appraisalPurpose",
+      "type": "selectOther",
+      "section": "general",
+      "systemPath": "p.appraisalPurpose"
+     }
+    },
+    {
+     "id": "appraisedRights",
+     "label": "הזכויות הנשומות (בעלות / חכירה / חכירה מהוונת / שכירות / דיירות מוגנת)",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (3)",
+      "1.1 §6.2"
+     ],
+     "match": [
+      "סוג הזכות",
+      "הזכויות הנשומות",
+      "typeZchut",
+      "הזכות הנשומה"
+     ],
+     "suggest": {
+      "name": "appraisedRights",
+      "type": "checkboxList",
+      "section": "legal",
+      "values": [
+       "בעלות",
+       "חכירה",
+       "חכירה מהוונת",
+       "שכירות",
+       "דיירות מוגנת",
+       "בר רשות"
+      ]
+     }
+    },
+    {
+     "id": "valuationDate",
+     "label": "המועד הקובע",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (7)",
+      "1.1 §6.3"
+     ],
+     "match": [
+      "מועד הקובע",
+      "מועד קובע",
+      "determinesDate",
+      "valuationDate"
+     ],
+     "suggest": {
+      "name": "determinesDate",
+      "type": "date",
+      "section": "general",
+      "systemPath": "p.determinesDate"
+     }
+    },
+    {
+     "id": "visitDate",
+     "label": "תאריך הביקור בנכס",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (6)",
+      "1.1 §6.4",
+      "451 §10"
+     ],
+     "match": [
+      "תאריך הביקור",
+      "מועד הביקור",
+      "visitDate"
+     ],
+     "suggest": {
+      "name": "visitDate",
+      "type": "date",
+      "section": "visit"
+     },
+     "note": "עד 3 חודשים לפני מועד הדוח"
+    },
+    {
+     "id": "visitor",
+     "label": "מי ביקר בנכס ותפקידו",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (6), 1(3)",
+      "1.1 §6.4"
+     ],
+     "match": [
+      "מבקר",
+      "visitorName",
+      "visitorRole",
+      "עורך הביקור"
+     ],
+     "suggest": {
+      "name": "visitorRole",
+      "type": "select",
+      "section": "visit",
+      "values": [
+       "השמאי החותם",
+       "שותף",
+       "שמאי מקרקעין",
+       "מתמחה",
+       "בוגר/ת התמחות"
+      ]
+     },
+     "note": "בחוות דעת לבית משפט - ביקור אישי של השמאי החותם"
+    },
+    {
+     "id": "notInspected",
+     "label": "חלקים שלא נבדקו בביקור והסיבה",
+     "level": "conditional",
+     "basis": [
+      "1.1 §6.4",
+      "19",
+      "20"
+     ],
+     "match": [
+      "לא נבדק",
+      "לא נבדקו",
+      "ללא גישה",
+      "אין גישה"
+     ],
+     "suggest": {
+      "name": "notInspectedParts",
+      "type": "textarea",
+      "section": "visit"
+     }
+    },
+    {
+     "id": "gushHelka",
+     "label": "גוש / חלקה / תת-חלקה",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (1)",
+      "4.2"
+     ],
+     "match": [
+      "גוש",
+      "חלקה"
+     ],
+     "suggest": {
+      "name": "gush",
+      "type": "text",
+      "section": "building",
+      "systemPath": "p.gush"
+     }
+    },
+    {
+     "id": "plot",
+     "label": "מגרש + התכנית שיצרה אותו",
+     "level": "conditional",
+     "basis": [
+      "4.2"
+     ],
+     "match": [
+      "מגרש",
+      "plot"
+     ],
+     "suggest": {
+      "name": "plot",
+      "type": "text",
+      "section": "building",
+      "systemPath": "p.plot"
+     }
+    },
+    {
+     "id": "unsettled",
+     "label": "מקרקעין לא מוסדרים / לא רשומים",
+     "level": "conditional",
+     "basis": [
+      "4.2",
+      "7.1 §8"
+     ],
+     "match": [
+      "לא מוסדר",
+      "לא רשום",
+      "גוש שומא",
+      "טרם נרשם"
+     ],
+     "suggest": {
+      "name": "registrationState",
+      "type": "select",
+      "section": "legal",
+      "values": [
+       "רשום",
+       "לא רשום",
+       "לא מוסדר"
+      ]
+     }
+    },
+    {
+     "id": "address",
+     "label": "כתובת (רחוב ומספר, שכונה, יישוב)",
+     "level": "required",
+     "basis": [
+      "4.2"
+     ],
+     "match": [
+      "כתובת",
+      "רחוב",
+      "עיר",
+      "יישוב"
+     ],
+     "suggest": {
+      "name": "street",
+      "type": "text",
+      "section": "building",
+      "systemPath": "p.street"
+     }
+    },
+    {
+     "id": "floorPosition",
+     "label": "קומה, מיקום במבנה וכיוון",
+     "level": "required",
+     "basis": [
+      "4.2",
+      "5.1"
+     ],
+     "match": [
+      "קומה",
+      "כיוון הנכס",
+      "מיקום"
+     ],
+     "suggest": {
+      "name": "floor",
+      "type": "selectOther",
+      "section": "property",
+      "systemPath": "p.floor"
+     }
+    },
+    {
+     "id": "coordinates",
+     "label": "נ.צ. ברשת ישראל החדשה + קישור Govmap",
+     "level": "recommended",
+     "basis": [
+      "4.2 §4"
+     ],
+     "match": [
+      "נ.צ",
+      "נצ",
+      "קואורדינט",
+      "govmap",
+      "נקודת ציון"
+     ],
+     "suggest": {
+      "name": "itmCoordinates",
+      "type": "text",
+      "section": "building"
+     }
+    },
+    {
+     "id": "locationMap",
+     "label": "מפת התמצאות / תשריט / תצ\"א עם מקור",
+     "level": "conditional",
+     "basis": [
+      "1.1 §6.5",
+      "19",
+      "17.1"
+     ],
+     "match": [
+      "מפת",
+      "מפה",
+      "תצ\"א",
+      "תצ\"א",
+      "תשריט",
+      "govMap"
+     ],
+     "suggest": {
+      "name": "locationMap",
+      "type": "image",
+      "section": "building"
+     },
+     "note": "חובה בשומה מקיפה; בשומה מלאה - אם הנכס לא מזוהה חד-ערכית. מפת govMapImage קיימת כמשתנה מערכת בתבניות"
+    },
+    {
+     "id": "frontPhoto",
+     "label": "תמונת חזית (ותמונות פנים)",
+     "level": "conditional",
+     "basis": [
+      "1.1 §6.6",
+      "5.1",
+      "19"
+     ],
+     "match": [
+      "תמונ*",
+      "צילום"
+     ],
+     "suggest": {
+      "name": "frontPhoto",
+      "type": "image",
+      "section": "building"
+     }
+    },
+    {
+     "id": "description",
+     "label": "תיאור הנכס: חלוקה פנימית, גמר, מצב פיזי",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (2)",
+      "5.1"
+     ],
+     "match": [
+      "חלוקה",
+      "תיאור הנכס",
+      "מצבו הפיזי",
+      "functionalDivision",
+      "גמר"
+     ],
+     "suggest": {
+      "name": "functionalDivision",
+      "type": "textarea",
+      "section": "property"
+     }
+    },
+    {
+     "id": "builtArea",
+     "label": "שטח בנוי",
+     "level": "required",
+     "basis": [
+      "5.1",
+      "9.0/9.1",
+      "10.0"
+     ],
+     "match": [
+      "שטח בנוי",
+      "שטח מדוד",
+      "שטח הדירה",
+      "שטח דירה",
+      "apartmentArea",
+      "שטח הנכס"
+     ],
+     "suggest": {
+      "name": "apartmentArea",
+      "type": "currency",
+      "suffix": "מ\"ר",
+      "section": "property"
+     }
+    },
+    {
+     "id": "areaSource",
+     "label": "מקור נתון השטח (מדידה / תשריט / היתר / מפרט)",
+     "level": "required",
+     "basis": [
+      "5.1",
+      "9.x",
+      "10.0"
+     ],
+     "match": [
+      "מקור לנתון השטח",
+      "מקור השטח",
+      "מקור נתון",
+      "apartmentAreaAuth"
+     ],
+     "suggest": {
+      "name": "areaSource",
+      "type": "textSod",
+      "section": "property"
+     }
+    },
+    {
+     "id": "balconies",
+     "label": "מרפסות - בנפרד משטח הדירה (מקורה / לא מקורה)",
+     "level": "conditional",
+     "basis": [
+      "9.1 (מ-1.1.2027)"
+     ],
+     "match": [
+      "מרפסת",
+      "מרפסות"
+     ],
+     "suggest": {
+      "name": "balconyArea",
+      "type": "currency",
+      "suffix": "מ\"ר",
+      "section": "property"
+     },
+     "note": "לפי 9.1 מרפסות שמש וגג לא נכללות בשטח הדירה"
+    },
+    {
+     "id": "landArea",
+     "label": "שטח הקרקע / המגרש",
+     "level": "conditional",
+     "basis": [
+      "5.1",
+      "7.1",
+      "17.1"
+     ],
+     "match": [
+      "שטח המגרש",
+      "שטח החלקה",
+      "שטח קרקע",
+      "שטח הקרקע"
+     ],
+     "suggest": {
+      "name": "plotArea",
+      "type": "currency",
+      "suffix": "מ\"ר",
+      "section": "building"
+     }
+    },
+    {
+     "id": "yearBuilt",
+     "label": "שנת בנייה",
+     "level": "required",
+     "basis": [
+      "5.1"
+     ],
+     "match": [
+      "שנת בנייה",
+      "שנת בניה",
+      "גיל הבניין",
+      "buildingYear"
+     ],
+     "suggest": {
+      "name": "buildingYear",
+      "type": "number",
+      "section": "building"
+     }
+    },
+    {
+     "id": "buildingFloors",
+     "label": "מספר קומות ויחידות בבניין",
+     "level": "required",
+     "basis": [
+      "5.1"
+     ],
+     "match": [
+      "מספר קומות",
+      "יחד",
+      "יח\"ד",
+      "יחידות"
+     ],
+     "suggest": {
+      "name": "numberOfFloors",
+      "type": "number",
+      "section": "building"
+     }
+    },
+    {
+     "id": "lifts",
+     "label": "מעליות",
+     "level": "recommended",
+     "basis": [
+      "5.1"
+     ],
+     "match": [
+      "מעלית"
+     ],
+     "suggest": {
+      "name": "elevators",
+      "type": "selectOther",
+      "section": "building",
+      "values": [
+       "אין",
+       "1",
+       "2",
+       "3+"
+      ]
+     }
+    },
+    {
+     "id": "actualUse",
+     "label": "השימוש בפועל וזהות המשתמש (בעלים / שוכר / אחר)",
+     "level": "required",
+     "basis": [
+      "5.1"
+     ],
+     "match": [
+      "המחזיק",
+      "שימוש בנכס",
+      "שימוש בפועל",
+      "propertyHolder",
+      "מאוכלס",
+      "איכלוס"
+     ],
+     "suggest": {
+      "name": "propertyHolder",
+      "type": "select",
+      "section": "visit",
+      "values": [
+       "הבעלים",
+       "שוכר",
+       "דייר מוגן",
+       "ריק",
+       "אחר"
+      ]
+     }
+    },
+    {
+     "id": "attachments",
+     "label": "הצמדות ושטחים משויכים",
+     "level": "required",
+     "basis": [
+      "5.1",
+      "7.1",
+      "9.x"
+     ],
+     "match": [
+      "הצמדות",
+      "הצמדה",
+      "linkages",
+      "משויכ"
+     ],
+     "suggest": {
+      "name": "linkagesGroup",
+      "type": "group",
+      "section": "property"
+     }
+    },
+    {
+     "id": "environment",
+     "label": "תיאור הסביבה (אופי, בנייה, חניה, רעש)",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (2)",
+      "5.1"
+     ],
+     "match": [
+      "סביבה",
+      "environment",
+      "סביבת"
+     ],
+     "suggest": {
+      "name": "environmentDescription",
+      "type": "textarea",
+      "section": "building"
+     }
+    },
+    {
+     "id": "transit",
+     "label": "קרבה למתע\"ן (רכבת קלה / רכבת / מטרו) - מרחק הליכה",
+     "level": "recommended",
+     "basis": [
+      "5.1 (±)"
+     ],
+     "match": [
+      "רכבת",
+      "מתען",
+      "מתע\"ן",
+      "מטרו",
+      "תחבורה"
+     ],
+     "suggest": {
+      "name": "transitDistance",
+      "type": "text",
+      "section": "building"
+     }
+    },
+    {
+     "id": "plans",
+     "label": "תכניות חלות: סוג, מספר, שם, סטטוס ותאריך סטטוס",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (4)",
+      "6.1 §6"
+     ],
+     "match": [
+      "תכנית",
+      "תכניות",
+      "תבע",
+      "תב\"ע",
+      "planData"
+     ],
+     "suggest": {
+      "name": "plansGroup",
+      "type": "group",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "designation",
+     "label": "ייעוד, שימושים מותרים וזכויות בנייה",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (4)",
+      "6.1"
+     ],
+     "match": [
+      "ייעוד",
+      "זכויות בניה",
+      "זכויות בנייה",
+      "planDataRights"
+     ],
+     "suggest": {
+      "name": "zoningDesignation",
+      "type": "text",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "usePotential",
+     "label": "אפשרויות שימוש, שינוי שימוש ותוספות בנייה",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (9)"
+     ],
+     "match": [
+      "אפשרויות",
+      "פוטנציאל",
+      "תוספות בנייה",
+      "לא נוצלו",
+      "יתרת זכויות"
+     ],
+     "suggest": {
+      "name": "usePotential",
+      "type": "textarea",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "permits",
+     "label": "היתרי בנייה: מספר, תאריך, מהות, טבלת שטחים",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (11)",
+      "6.1 §7-8"
+     ],
+     "match": [
+      "היתר",
+      "permit"
+     ],
+     "suggest": {
+      "name": "permits",
+      "type": "group",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "form4",
+     "label": "טופס 4 / תעודת גמר",
+     "level": "recommended",
+     "basis": [
+      "6.1 §9"
+     ],
+     "match": [
+      "טופס 4",
+      "תעודת גמר",
+      "completionCertificate"
+     ],
+     "suggest": {
+      "name": "completionCertificateDate",
+      "type": "date",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "deviations",
+     "label": "חריגות בנייה ושימוש בניגוד להיתר",
+     "level": "required",
+     "basis": [
+      "6.1 §10"
+     ],
+     "match": [
+      "חריגות",
+      "חריגה",
+      "שימוש חורג"
+     ],
+     "suggest": {
+      "name": "buildingDeviations",
+      "type": "textarea",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "planningSources",
+     "label": "תיעוד מקורות המידע התכנוני (כולל מידע בעל פה: מי, תפקיד, מתי)",
+     "level": "recommended",
+     "basis": [
+      "6.1 §4",
+      "7.1"
+     ],
+     "match": [
+      "מקור המידע",
+      "תיעוד",
+      "נמסר בעל פה",
+      "דף מידע"
+     ],
+     "suggest": {
+      "name": "planningInfoSources",
+      "type": "textarea",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "extract",
+     "label": "נסח רישום: פנקס ותאריך הנסח",
+     "level": "required",
+     "basis": [
+      "7.1 §5.2"
+     ],
+     "match": [
+      "נסח",
+      "טאבו",
+      "רישום מקרקעין",
+      "nesachTabo"
+     ],
+     "suggest": {
+      "name": "extractDate",
+      "type": "date",
+      "section": "legal"
+     },
+     "note": "עד 3 חודשים (19 ו-20: עד חודשיים)"
+    },
+    {
+     "id": "owners",
+     "label": "בעלים וחלקם בנכס",
+     "level": "required",
+     "basis": [
+      "7.1 §5.2"
+     ],
+     "match": [
+      "בעלים",
+      "בעלי הזכויות",
+      "החלק בנכס"
+     ],
+     "suggest": {
+      "name": "owners",
+      "type": "group",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "commonShare",
+     "label": "החלק ברכוש המשותף (שבר)",
+     "level": "conditional",
+     "basis": [
+      "7.1 §5.2"
+     ],
+     "match": [
+      "רכוש המשותף",
+      "חלק ברכוש"
+     ],
+     "suggest": {
+      "name": "commonPropertyShare",
+      "type": "text",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "registerNotes",
+     "label": "הערות במרשם (אזהרה, משכנתאות, זיקות הנאה)",
+     "level": "required",
+     "basis": [
+      "7.1 §5.2"
+     ],
+     "match": [
+      "הערות במרשם",
+      "הערת אזהרה",
+      "הערות אזהרה",
+      "משכנתא",
+      "משכנתאות",
+      "זיקת הנאה",
+      "nesachTaboNote",
+      "nesachTaboMashcanta"
+     ],
+     "suggest": {
+      "name": "registerNotes",
+      "type": "group",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "bylaws",
+     "label": "תקנון מצוי / מוסכם (סעיפים שמשפיעים על השווי)",
+     "level": "conditional",
+     "basis": [
+      "7.1 §5.2"
+     ],
+     "match": [
+      "תקנון"
+     ],
+     "suggest": {
+      "name": "bylawsDetails",
+      "type": "textarea",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "rightsConfirmation",
+     "label": "אישור זכויות (רמ\"י / חברה משכנת / אגודה) - סוג ותאריך",
+     "level": "conditional",
+     "basis": [
+      "7.1 §5.3"
+     ],
+     "match": [
+      "אישור זכויות",
+      "חברה משכנת",
+      "רמי",
+      "רמ\"י"
+     ],
+     "suggest": {
+      "name": "rightsConfirmation",
+      "type": "group",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "leases",
+     "label": "שכירויות: תקופה, אופציות, שטח, דמי שכירות",
+     "level": "conditional",
+     "basis": [
+      "7.1 §5.6"
+     ],
+     "match": [
+      "חוזה שכירות",
+      "דמי שכירות",
+      "rentalGroup"
+     ],
+     "suggest": {
+      "name": "rentalGroup",
+      "type": "group",
+      "section": "legal"
+     },
+     "parts": {
+      "תקופה": [
+       "תקופ*",
+       "תוקף",
+       "סיום",
+       "מתאריך",
+       "עד לתאריך",
+       "start*",
+       "end*"
+      ],
+      "אופציות": [
+       "אופצי*"
+      ],
+      "שטח": [
+       "שטח*"
+      ],
+      "דמי שכירות": [
+       "דמי שכירות",
+       "שכר דירה",
+       "שכירות חודשי*"
+      ]
+     }
+    },
+    {
+     "id": "occupants",
+     "label": "דייר מוגן / פולש / טוען לזכות",
+     "level": "conditional",
+     "basis": [
+      "7.1 §5.7"
+     ],
+     "match": [
+      "דייר מוגן",
+      "פולש",
+      "מוגנת"
+     ],
+     "suggest": {
+      "name": "occupantsClaims",
+      "type": "textarea",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "history",
+     "label": "עסקאות בנכס ב-3 השנים האחרונות",
+     "level": "conditional",
+     "basis": [
+      "1.1 §6.8 (חובה במקיפה)"
+     ],
+     "match": [
+      "עסקאות בנכס",
+      "היסטוריה",
+      "עסקה קודמת",
+      "נמכר"
+     ],
+     "suggest": {
+      "name": "propertyTransactions",
+      "type": "group",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "priorAppraisals",
+     "label": "שומות קודמות של השמאי לנכס (3 שנים)",
+     "level": "conditional",
+     "basis": [
+      "1.1 §6.8 (חובה במקיפה)"
+     ],
+     "match": [
+      "שומות קודמות",
+      "שומה קודמת"
+     ],
+     "suggest": {
+      "name": "priorAppraisals",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "approaches",
+     "label": "עקרונות וגישות השומה (ולמה גישה מקובלת לא יושמה)",
+     "level": "required",
+     "basis": [
+      "תקנות האתיקה (8)",
+      "8.1 §5.2"
+     ],
+     "match": [
+      "עקרונות",
+      "גישת",
+      "principles"
+     ],
+     "suggest": {
+      "name": "valuationApproaches",
+      "type": "checkboxList",
+      "section": "valuation",
+      "values": [
+       "גישת ההשוואה",
+       "גישת היוון הכנסות",
+       "גישת העלות",
+       "גישת החילוץ (שיורית)"
+      ]
+     }
+    },
+    {
+     "id": "comparables",
+     "label": "טבלת עסקאות השוואה (3 לפחות: תאריך, פרטים, מחיר, מקור, מקדמים, מחיר מתואם)",
+     "level": "conditional",
+     "basis": [
+      "1.1 §6.10",
+      "2.1 §4.3-4.5",
+      "3.1"
+     ],
+     "match": [
+      "עסקאות השוואה",
+      "נתוני השוואה",
+      "comparables"
+     ],
+     "suggest": {
+      "name": "comparables",
+      "type": "group",
+      "section": "valuation"
+     },
+     "note": "רבים מחזיקים את טבלת ההשוואה מחוץ לטופס (אקסל / כלי נדל\"ן). מוסיפים לטופס רק אם הדוח של המשרד מציג אותה ורוצים שתתמלא מ-Quicker",
+     "partial": [
+      "עסקאות"
+     ]
+    },
+    {
+     "id": "materialValues",
+     "label": "הסבר ערכים מהותיים (שיעור היוון, מקדמים, מקורות)",
+     "level": "recommended",
+     "basis": [
+      "8.1 §5.4"
+     ],
+     "match": [
+      "שיעור היוון",
+      "מקדמים",
+      "מקדם"
+     ],
+     "suggest": {
+      "name": "materialValuesNotes",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "value",
+     "label": "השווי (סכום או טווח) ליום הקובע",
+     "level": "required",
+     "basis": [
+      "1.1 §6.12"
+     ],
+     "match": [
+      "שווי",
+      "currentMarketValue",
+      "שווי שוק"
+     ],
+     "suggest": {
+      "name": "marketValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "vat",
+     "label": "מע\"מ: כולל / לא כולל / פטור",
+     "level": "recommended",
+     "basis": [
+      "11.0א",
+      "8.1 §5.6"
+     ],
+     "match": [
+      "מעמ",
+      "מע\"מ"
+     ],
+     "suggest": {
+      "name": "vatStatus",
+      "type": "radio",
+      "section": "valuation",
+      "values": [
+       "כולל מע\"מ",
+       "לא כולל מע\"מ",
+       "פטור ממע\"מ"
+      ]
+     }
+    },
+    {
+     "id": "assumptions",
+     "label": "הנחות שאינן תואמות את המציאות + מי ביקש אותן",
+     "level": "conditional",
+     "basis": [
+      "1.1 §8"
+     ],
+     "match": [
+      "הנחה",
+      "הנחות",
+      "מבוסס הנחה"
+     ],
+     "suggest": {
+      "name": "valuationAssumptions",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "reservations",
+     "label": "הסתייגויות",
+     "level": "recommended",
+     "basis": [
+      "8.1 §5.6",
+      "19",
+      "17.1"
+     ],
+     "match": [
+      "הסתייג*",
+      "סייג*"
+     ],
+     "suggest": {
+      "name": "reservations",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "deviationFromStandard",
+     "label": "סטייה מהתקינה + נימוק",
+     "level": "recommended",
+     "basis": [
+      "כל התקנים",
+      "8.1 §5.6"
+     ],
+     "match": [
+      "סטייה מהתקן",
+      "סטייה מהתקינה",
+      "סטיה"
+     ],
+     "suggest": {
+      "name": "standardDeviation",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "experts",
+     "label": "מומחה שנעזרו בו: זהות, מומחיות, עניין, מסקנה",
+     "level": "conditional",
+     "basis": [
+      "תקנות האתיקה (10)",
+      "1.1 §6.11"
+     ],
+     "match": [
+      "מומחה"
+     ],
+     "suggest": {
+      "name": "experts",
+      "type": "group",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "declarations",
+     "label": "הצהרות: היעדר עניין אישי; עריכה לפי התקנות והתקנים",
+     "level": "required",
+     "basis": [
+      "1.1 §6.14"
+     ],
+     "match": [
+      "הצהרה",
+      "מצהיר",
+      "disclaimer"
+     ],
+     "suggest": {
+      "name": "declarations",
+      "type": "textarea",
+      "section": "declarations"
+     },
+     "note": "נוסח קבוע - בדרך כלל טקסט קבוע בתבנית ולא שדה"
+    },
+    {
+     "id": "contingentFee",
+     "label": "שכר מותנה בתוצאה (תקנה 4) - הצהרה",
+     "level": "conditional",
+     "basis": [
+      "תקנות האתיקה (13), 4"
+     ],
+     "match": [
+      "שכר מותנה",
+      "שכט מותנה",
+      "מותנה בתוצאה"
+     ],
+     "suggest": {
+      "name": "contingentFee",
+      "type": "checkbox",
+      "section": "declarations"
+     }
+    }
+   ]
+  },
+  "mortgage": {
+   "title": "שומה לבנק - משכנתא לדירת מגורים",
+   "when": "a bank mortgage on a residential unit; bank formats (לאומי / מזרחי טפחות / הפועלים / דיסקונט / הבינלאומי...)",
+   "valuationDate": "סמוך לשומה; הצהרה על תאריך הביקור; בנק אחר רשאי להשתמש בשומה עד 90 יום",
+   "notes": [
+    "תקן 19 לא חל על שומת משכנתא לדירת מגורים. חלים תקנות האתיקה, תקן 1.1 והוראת ניהול בנקאי תקין 451.",
+    "451 §10: שומה בלתי תלויה, ביקור פיזי, תרשים של הנכס, תיאור מפורט והצהרה על תאריך הביקור.",
+    "אין פורמט אחיד מחייב לכל הבנקים - כל בנק עם הפורמט שלו (לאומי: רגילה / מורחבת לפי תקן 19). לכן הטופס נבנה לפי הדוחות של המשרד לכל בנק, ותנאי תצוגה לפי referrer מפרידים בין בנקים."
+   ],
+   "items": [
+    {
+     "id": "bank",
+     "label": "הבנק המזמין",
+     "level": "required",
+     "basis": [
+      "451",
+      "פרקטיקה"
+     ],
+     "match": [
+      "בנק",
+      "referrer",
+      "גורם מפנה",
+      "לכבוד"
+     ],
+     "suggest": {
+      "name": "referrer",
+      "type": "selectOther",
+      "section": "general",
+      "systemPath": "p.referrer"
+     },
+     "note": "referrer הוא רשימת ארגון - האפשרויות משתנות בהגדרות"
+    },
+    {
+     "id": "branch",
+     "label": "סניף",
+     "level": "recommended",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "סניף",
+      "branch"
+     ],
+     "suggest": {
+      "name": "branch",
+      "type": "text",
+      "section": "general"
+     }
+    },
+    {
+     "id": "bankContact",
+     "label": "איש קשר בבנק (לידי, דוא\"ל)",
+     "level": "recommended",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "לידי",
+      "bankAgent",
+      "יועץ"
+     ],
+     "suggest": {
+      "name": "bankAgentRecipient",
+      "type": "text",
+      "section": "general"
+     }
+    },
+    {
+     "id": "loanNumber",
+     "label": "מספר תיק / הלוואה בבנק",
+     "level": "recommended",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "מספר תיק הלוואה",
+      "מס הלוואה",
+      "loanNumber",
+      "מספר תיק"
+     ],
+     "suggest": {
+      "name": "loanNumber",
+      "type": "text",
+      "section": "general"
+     }
+    },
+    {
+     "id": "loanPurpose",
+     "label": "מטרת ההלוואה (רכישה / בנייה עצמית / שיפוץ / משכנתא לכל מטרה)",
+     "level": "recommended",
+     "basis": [
+      "פרקטיקה",
+      "329"
+     ],
+     "match": [
+      "מטרת ההלוואה",
+      "loanPurpose"
+     ],
+     "suggest": {
+      "name": "loanPurpose",
+      "type": "selectOther",
+      "section": "general",
+      "values": [
+       "רכישת נכס",
+       "בנייה עצמית",
+       "שיפוצים",
+       "הלוואה לכל מטרה"
+      ]
+     }
+    },
+    {
+     "id": "borrowers",
+     "label": "לווים (שם, ת\"ז)",
+     "level": "required",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "לווים",
+      "לווה",
+      "borrowers"
+     ],
+     "suggest": {
+      "name": "borrowers",
+      "type": "group",
+      "section": "general"
+     }
+    },
+    {
+     "id": "appraisalLevel",
+     "label": "סוג השמאות לפי הבנק (רגילה / מורחבת)",
+     "level": "recommended",
+     "basis": [
+      "פרקטיקה (לאומי)"
+     ],
+     "match": [
+      "רגילה",
+      "מורחבת",
+      "מקוצרת",
+      "extanded"
+     ],
+     "suggest": {
+      "name": "appraisalLevel",
+      "type": "radio",
+      "section": "general",
+      "values": [
+       "שומה מקוצרת",
+       "שומה מורחבת"
+      ]
+     }
+    },
+    {
+     "id": "purchasePrice",
+     "label": "מחיר רכישה בחוזה ותאריך החוזה",
+     "level": "recommended",
+     "basis": [
+      "329",
+      "פרקטיקה"
+     ],
+     "match": [
+      "מחיר רכישה",
+      "מחיר בחוזה",
+      "תמורה",
+      "מחיר העסקה"
+     ],
+     "suggest": {
+      "name": "purchasePrice",
+      "type": "currency",
+      "section": "general"
+     }
+    },
+    {
+     "id": "reducedPrice",
+     "label": "דירה במחיר מופחת (מחיר למשתכן / דירה בהנחה)",
+     "level": "conditional",
+     "basis": [
+      "329"
+     ],
+     "match": [
+      "מחיר מופחת",
+      "מחיר למשתכן",
+      "דירה בהנחה"
+     ],
+     "suggest": {
+      "name": "reducedPriceProgram",
+      "type": "checkbox",
+      "section": "general"
+     }
+    },
+    {
+     "id": "sketch",
+     "label": "תרשים הנכס",
+     "level": "required",
+     "basis": [
+      "451 §10(א)"
+     ],
+     "match": [
+      "תרשים",
+      "סקיצה",
+      "שרטוט"
+     ],
+     "suggest": {
+      "name": "propertySketch",
+      "type": "image",
+      "section": "property"
+     },
+     "partial": [
+      "תשריט"
+     ],
+     "note": "תשריט בית משותף / היתר אינו בהכרח 'תרשים הנכס' של השמאי - לבדוק מה הבנק מקבל"
+    },
+    {
+     "id": "quickSale",
+     "label": "הפחתה / שווי במימוש מהיר",
+     "level": "recommended",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "מימוש מהיר",
+      "quickSale",
+      "מכירה כפויה"
+     ],
+     "suggest": {
+      "name": "quickSaleValue",
+      "type": "selectOther",
+      "section": "valuation",
+      "values": [
+       "0%",
+       "-5%",
+       "-10%",
+       "-15%",
+       "-20%"
+      ]
+     }
+    },
+    {
+     "id": "reinstatement",
+     "label": "ערך כינון (לביטוח המבנה)",
+     "level": "recommended",
+     "basis": [
+      "פרקטיקה (מזרחי טפחות)"
+     ],
+     "match": [
+      "ערך כינון",
+      "reinstatement"
+     ],
+     "suggest": {
+      "name": "reinstatementValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "bankNotes",
+     "label": "הערות לתשומת לב הבנק",
+     "level": "recommended",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "לתשומת לב הבנק",
+      "הערות לבנק",
+      "bankNotes"
+     ],
+     "suggest": {
+      "name": "bankNotes",
+      "type": "textarea",
+      "section": "general"
+     }
+    },
+    {
+     "id": "construction",
+     "label": "נכס בבנייה: אחוז ביצוע, עלויות, שווי לפי שלב",
+     "level": "conditional",
+     "basis": [
+      "פרקטיקה (בנייה עצמית)"
+     ],
+     "match": [
+      "אחוז בנייה",
+      "שלב הבנייה",
+      "עלות בניה",
+      "עלויות הבניה"
+     ],
+     "suggest": {
+      "name": "constructionPercent",
+      "type": "number",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "renovation",
+     "label": "נכס בשיפוץ: עלות, שווי לפני ואחרי",
+     "level": "conditional",
+     "basis": [
+      "פרקטיקה (שיפוצים)"
+     ],
+     "match": [
+      "שיפוץ",
+      "שיפוצים"
+     ],
+     "suggest": {
+      "name": "renovationCost",
+      "type": "currency",
+      "section": "valuation"
+     }
+    }
+   ]
+  },
+  "collateral19": {
+   "title": "בטוחה לאשראי / אג\"ח (תקן 19)",
+   "when": "collateral for credit that is NOT a residential mortgage: commercial loans, developer credit, insurers, bond issues; also 'שומה מורחבת עפ\"י תקן 19' when a bank asks for it",
+   "valuationDate": "עד 3 חודשים לפני הדוח; ביקור עד 3 חודשים",
+   "notes": [
+    "אסור לסטות מסעיפים 4.9-4.18. אם חסר נתון מהותי - אין להוציא שומה לבטוחה.",
+    "שני ערכים: שווי שוק וערך למטרת בטוחה (רק תכניות מאושרות, בלי בנייה לא חוקית ובלי הנחות לטובת הלווה)."
+   ],
+   "items": [
+    {
+     "id": "collateralValue",
+     "label": "ערך למטרת בטוחה",
+     "level": "required",
+     "basis": [
+      "19 §4.14"
+     ],
+     "match": [
+      "ערך למטרת בטוחה",
+      "שווי לבטוחה",
+      "collateral"
+     ],
+     "suggest": {
+      "name": "collateralValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "planningPotential",
+     "label": "תרומת פוטנציאל תכנוני - בנפרד",
+     "level": "required",
+     "basis": [
+      "19 §4.14"
+     ],
+     "match": [
+      "פוטנציאל תכנוני",
+      "פוטנציאל"
+     ],
+     "suggest": {
+      "name": "planningPotentialValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "forcedSale",
+     "label": "שיעור הנחת מכירה כפויה (%)",
+     "level": "required",
+     "basis": [
+      "19 §4.15(א)"
+     ],
+     "match": [
+      "מכירה כפויה",
+      "מימוש מהיר",
+      "הפחתה במימוש",
+      "quickSale"
+     ],
+     "suggest": {
+      "name": "forcedSaleDiscount",
+      "type": "textPom",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "taxShevach",
+     "label": "מס שבח במימוש (ללא פטורים אישיים)",
+     "level": "required",
+     "basis": [
+      "19 §4.15(ב)"
+     ],
+     "match": [
+      "מס שבח"
+     ],
+     "suggest": {
+      "name": "realisationShevachTax",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "taxHashbacha",
+     "label": "היטל השבחה במימוש (ללא פטורים)",
+     "level": "required",
+     "basis": [
+      "19 §4.15(ב)"
+     ],
+     "match": [
+      "היטל השבחה"
+     ],
+     "suggest": {
+      "name": "realisationBettermentLevy",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "lessorPayments",
+     "label": "תשלומים למחכיר (דמי היתר / הסכמה) וחיובים אחרים",
+     "level": "required",
+     "basis": [
+      "19 §4.15(ב)"
+     ],
+     "match": [
+      "דמי היתר",
+      "דמי הסכמה",
+      "למחכיר",
+      "תשלומים למחכיר"
+     ],
+     "suggest": {
+      "name": "realisationOtherCharges",
+      "type": "textarea",
+      "section": "valuation"
+     },
+     "partial": [
+      "taxesAndLevies",
+      "מסים והיטלים"
+     ]
+    },
+    {
+     "id": "reinstatement",
+     "label": "ערך כינון (עלות תחליף, ללא מע\"מ, יזמות ופחת)",
+     "level": "required",
+     "basis": [
+      "19 §4.16"
+     ],
+     "match": [
+      "ערך כינון",
+      "reinstatement"
+     ],
+     "suggest": {
+      "name": "reinstatementValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "presenter",
+     "label": "מציג הנכס וזיקתו",
+     "level": "required",
+     "basis": [
+      "19 §4.6"
+     ],
+     "match": [
+      "מציג",
+      "propertyViewer"
+     ],
+     "suggest": {
+      "name": "propertyViewerName",
+      "type": "text",
+      "section": "visit"
+     }
+    },
+    {
+     "id": "visitorTitle",
+     "label": "תואר המבקר (שמאי / מתמחה)",
+     "level": "required",
+     "basis": [
+      "19 §4.6"
+     ],
+     "match": [
+      "תפקיד מבקר",
+      "visitorRole",
+      "תואר המבקר"
+     ],
+     "suggest": {
+      "name": "visitorRole",
+      "type": "select",
+      "section": "visit",
+      "values": [
+       "שמאי מקרקעין",
+       "מתמחה"
+      ]
+     }
+    },
+    {
+     "id": "photos",
+     "label": "תמונות: חזית, פנים ושלט העסק",
+     "level": "required",
+     "basis": [
+      "19 §4.7"
+     ],
+     "match": [
+      "תמונ*"
+     ],
+     "suggest": {
+      "name": "collateralPhotos",
+      "type": "image",
+      "section": "property"
+     }
+    },
+    {
+     "id": "nonConforming",
+     "label": "שימושים חורגים בתוקף ושפקעו ב-7 השנים האחרונות",
+     "level": "required",
+     "basis": [
+      "19 §4.9"
+     ],
+     "match": [
+      "שימוש חורג",
+      "שימושים חורגים"
+     ],
+     "suggest": {
+      "name": "nonConformingUses",
+      "type": "textarea",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "unusedRights",
+     "label": "טבלת זכויות בלתי מנוצלות (תכניות, היתר, יתרה לפי קומה ועיקרי/שירות)",
+     "level": "required",
+     "basis": [
+      "19 §4.9"
+     ],
+     "match": [
+      "זכויות בלתי מנוצלות",
+      "יתרת זכויות"
+     ],
+     "suggest": {
+      "name": "unusedRights",
+      "type": "group",
+      "section": "planning"
+     },
+     "partial": [
+      "לא נוצלו"
+     ]
+    },
+    {
+     "id": "contamination",
+     "label": "זיהום קרקע (סקר, חוות דעת, שימוש חשוד)",
+     "level": "required",
+     "basis": [
+      "19 §4.9"
+     ],
+     "match": [
+      "זיהום"
+     ],
+     "suggest": {
+      "name": "soilContamination",
+      "type": "textarea",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "extractDate",
+     "label": "תאריך הנסח (עד חודשיים, מהמקור הרשמי)",
+     "level": "required",
+     "basis": [
+      "19 §4.10"
+     ],
+     "match": [
+      "תאריך נסח",
+      "תאריך מסמך הרישום",
+      "nesachTaboDate",
+      "תאריך הנסח"
+     ],
+     "suggest": {
+      "name": "extractDate",
+      "type": "date",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "leaseTerms",
+     "label": "תנאי חכירה: תקופה, מטרה, קיבולת, דמי חכירה",
+     "level": "conditional",
+     "basis": [
+      "19 §4.10"
+     ],
+     "match": [
+      "חוזה חכירה",
+      "תקופת החכירה",
+      "קיבולת",
+      "LeaseContract"
+     ],
+     "suggest": {
+      "name": "leaseTerms",
+      "type": "group",
+      "section": "legal"
+     },
+     "parts": {
+      "תקופה": [
+       "תקופ*",
+       "תוקף",
+       "סיום",
+       "מתאריך",
+       "עד לתאריך",
+       "start*",
+       "end*"
+      ],
+      "מטרה": [
+       "מטרת*",
+       "ייעוד",
+       "שימוש"
+      ],
+      "קיבולת": [
+       "קיבולת"
+      ],
+      "דמי חכירה": [
+       "דמי חכירה"
+      ]
+     }
+    },
+    {
+     "id": "tenants",
+     "label": "טבלת שוכרים ושיעור תפוסה",
+     "level": "conditional",
+     "basis": [
+      "19 §4.10"
+     ],
+     "match": [
+      "טבלת שוכרים",
+      "תפוסה"
+     ],
+     "suggest": {
+      "name": "tenantsTable",
+      "type": "group",
+      "section": "legal"
+     },
+     "partial": [
+      "חוזה שכירות",
+      "rentalGroup",
+      "שוכר"
+     ]
+    },
+    {
+     "id": "cpaCheck",
+     "label": "אימות תשלומי השכירות מול רו\"ח הבעלים (רבעון אחרון; לא במגורים)",
+     "level": "conditional",
+     "basis": [
+      "19 §4.10"
+     ],
+     "match": [
+      "רואה חשבון",
+      "רוח",
+      "רו\"ח",
+      "אימות"
+     ],
+     "suggest": {
+      "name": "rentVerifiedByCpa",
+      "type": "checkbox",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "mgmtFees",
+     "label": "דמי ניהול והכנסות חשמל",
+     "level": "conditional",
+     "basis": [
+      "19 §4.10"
+     ],
+     "match": [
+      "דמי ניהול",
+      "חשמל"
+     ],
+     "suggest": {
+      "name": "managementFees",
+      "type": "currency",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "expropriations",
+     "label": "הפקעות שלא מומשו והערות לפי סעיף 126",
+     "level": "required",
+     "basis": [
+      "19 §4.10"
+     ],
+     "match": [
+      "הפקעה",
+      "הפקעות",
+      "הערת אזהרה",
+      "126"
+     ],
+     "suggest": {
+      "name": "unrealisedExpropriations",
+      "type": "textarea",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "history3y",
+     "label": "עסקאות ושומות של השמאי בנכס ב-3 שנים",
+     "level": "required",
+     "basis": [
+      "19 §4.11"
+     ],
+     "match": [
+      "שומות קודמות",
+      "עסקאות בנכס",
+      "היסטוריה"
+     ],
+     "suggest": {
+      "name": "propertyHistory",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "approachGap",
+     "label": "הסבר לפער של יותר מ-20% בין גישות",
+     "level": "conditional",
+     "basis": [
+      "19 §4.13"
+     ],
+     "match": [
+      "פער בין הגישות",
+      "פער"
+     ],
+     "suggest": {
+      "name": "approachGapExplanation",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "vat",
+     "label": "מע\"מ לפי תקן 11.0א (כולל / לא כולל / פטור)",
+     "level": "required",
+     "basis": [
+      "19 §4.12",
+      "11.0א"
+     ],
+     "match": [
+      "מעמ",
+      "מע\"מ"
+     ],
+     "suggest": {
+      "name": "vatStatus",
+      "type": "radio",
+      "section": "valuation",
+      "values": [
+       "כולל מע\"מ",
+       "לא כולל מע\"מ",
+       "פטור ממע\"מ"
+      ]
+     }
+    },
+    {
+     "id": "reservations",
+     "label": "הסתייגויות - בסמוך לשווי",
+     "level": "required",
+     "basis": [
+      "19 §4.14"
+     ],
+     "match": [
+      "הסתייג*",
+      "סייג*"
+     ],
+     "suggest": {
+      "name": "reservations",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "annexes",
+     "label": "נספחים: נסח, אישור זכויות, תמונות, מפה, טבלת הקצאה, חוזה חכירה",
+     "level": "required",
+     "basis": [
+      "19 §4.18"
+     ],
+     "match": [
+      "נספח",
+      "Appendices"
+     ],
+     "suggest": {
+      "name": "annexes",
+      "type": "image",
+      "section": "valuation"
+     }
+    }
+   ]
+  },
+  "construction0": {
+   "title": "ליווי פיננסי - דו\"ח אפס ודוחות פיקוח",
+   "when": "construction-project finance (ליווי סגור), urban-renewal finance, supervision reports",
+   "valuationDate": "[unverified] - לפי ההזמנה; שווי 'כגמור' הוא הנחה (1.1 §8)",
+   "notes": [
+    "אין תקן שמאות ואין הוראת בנק ישראל לתוכן הדו\"ח (הוראה 326 עוסקת במנגנון הליווי). השדות כאן ממקורות מקצועיים - הטופס צריך להיבנות לפי התבנית של הבנק המלווה ושל המשרד.",
+    "דוחות פיקוח הם סדרה ממוספרת - שקלו טופס נפרד או קבוצה חוזרת לכל דו\"ח."
+   ],
+   "items": [
+    {
+     "id": "projectType",
+     "label": "סוג הפרויקט (חדש / חיזוק / הריסה ובנייה / פינוי בינוי / קבוצת רכישה / קומבינציה)",
+     "level": "recommended",
+     "basis": [
+      "מקורות מקצועיים"
+     ],
+     "match": [
+      "סוג הפרויקט"
+     ],
+     "suggest": {
+      "name": "projectType",
+      "type": "selectOther",
+      "section": "general",
+      "values": [
+       "פרויקט חדש",
+       "תמ\"א 38 חיזוק",
+       "הריסה ובנייה",
+       "פינוי בינוי",
+       "קבוצת רכישה",
+       "קומבינציה"
+      ]
+     }
+    },
+    {
+     "id": "financingAmount",
+     "label": "סכום מימון מבוקש",
+     "level": "recommended",
+     "basis": [
+      "מקורות מקצועיים"
+     ],
+     "match": [
+      "סכום מימון",
+      "מסגרת אשראי",
+      "מימון"
+     ],
+     "suggest": {
+      "name": "financingAmount",
+      "type": "currency",
+      "section": "general"
+     }
+    },
+    {
+     "id": "programme",
+     "label": "המודל המוצע: תמהיל יח\"ד, שטחים מתוכננים, מפרט",
+     "level": "recommended",
+     "basis": [
+      "מקורות מקצועיים"
+     ],
+     "match": [
+      "תמהיל",
+      "יחידות מתוכננות",
+      "פרוגרמה"
+     ],
+     "suggest": {
+      "name": "unitMix",
+      "type": "group",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "budget",
+     "label": "תקציב: עלויות ישירות, עקיפות, אגרות והיטלים, בלתי צפויים",
+     "level": "recommended",
+     "basis": [
+      "מקורות מקצועיים"
+     ],
+     "match": [
+      "תקציב",
+      "עלויות ישירות",
+      "עלויות עקיפות",
+      "בלתי צפויים"
+     ],
+     "suggest": {
+      "name": "budgetLines",
+      "type": "group",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "revenues",
+     "label": "הכנסות צפויות (מחיר למ\"ר, מכירות)",
+     "level": "recommended",
+     "basis": [
+      "מקורות מקצועיים"
+     ],
+     "match": [
+      "הכנסות",
+      "מחיר למ\"ר",
+      "מחיר למטר"
+     ],
+     "suggest": {
+      "name": "expectedRevenue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "marketSurvey",
+     "label": "סקר מחירים / פרויקטים מתחרים",
+     "level": "recommended",
+     "basis": [
+      "מקורות מקצועיים"
+     ],
+     "match": [
+      "סקר",
+      "מתחרים"
+     ],
+     "suggest": {
+      "name": "marketSurvey",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "sensitivity",
+     "label": "ניתוח רגישות ותזרים מזומנים",
+     "level": "recommended",
+     "basis": [
+      "מקורות מקצועיים",
+      "רשות ני\"ע 2025"
+     ],
+     "match": [
+      "רגישות",
+      "תזרים"
+     ],
+     "suggest": {
+      "name": "sensitivityAnalysis",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "profit",
+     "label": "רווח יזמי (₪ ו-%)",
+     "level": "recommended",
+     "basis": [
+      "מקורות מקצועיים"
+     ],
+     "match": [
+      "רווח יזמי",
+      "רווחיות"
+     ],
+     "suggest": {
+      "name": "developerProfit",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "landValue",
+     "label": "שווי הקרקע",
+     "level": "recommended",
+     "basis": [
+      "3.1 §5.5"
+     ],
+     "match": [
+      "שווי קרקע",
+      "שווי המגרש",
+      "landValue"
+     ],
+     "suggest": {
+      "name": "landValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "completionValue",
+     "label": "שווי הפרויקט בגמר",
+     "level": "recommended",
+     "basis": [
+      "מקורות מקצועיים"
+     ],
+     "match": [
+      "בגמר",
+      "לאחר השלמה",
+      "כגמור"
+     ],
+     "suggest": {
+      "name": "completionValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "supervisionNo",
+     "label": "דוח פיקוח: מספר דוח, אחוז ביצוע, עלות להשלמה, מכירות",
+     "level": "conditional",
+     "basis": [
+      "פרקטיקה [unverified]"
+     ],
+     "match": [
+      "דוח פיקוח",
+      "אחוז ביצוע",
+      "עלות להשלמה"
+     ],
+     "suggest": {
+      "name": "supervisionReportNo",
+      "type": "number",
+      "section": "general"
+     }
+    }
+   ]
+  },
+  "betterment": {
+   "title": "היטל השבחה",
+   "when": "levy appraisals for a local committee or an owner, counter-appraisals, decisive-appraiser and appeals proceedings",
+   "valuationDate": "יום תחילת התכנית (הקלה / שימוש חורג - יום האישור)",
+   "notes": [
+    "אין תקן ייעודי (בתוכניות העבודה 2026-2027). תקן 6.1 דורש פירוט תכנוני גבוה. שכר מותנה מותר בהליכים אלה, עם הצהרה.",
+    "תוספת שלישית: ההיטל = מחצית ההשבחה; כמה תכניות ברצף בלי היטל ביניהן - לפני הראשונה מול אחרי האחרונה (סעיף 4(5)); הצמדה מיום האישור עד המימוש."
+   ],
+   "items": [
+    {
+     "id": "eventType",
+     "label": "סוג האירוע המשביח (תכנית / הקלה / שימוש חורג)",
+     "level": "required",
+     "basis": [
+      "תוספת שלישית"
+     ],
+     "match": [
+      "אירוע משביח",
+      "סוג האירוע",
+      "הקלה",
+      "שימוש חורג"
+     ],
+     "suggest": {
+      "name": "bettermentEventType",
+      "type": "select",
+      "section": "planning",
+      "values": [
+       "אישור תכנית",
+       "מתן הקלה",
+       "התרת שימוש חורג"
+      ]
+     }
+    },
+    {
+     "id": "plan",
+     "label": "התכנית המשביחה: מספר, שם, תאריך תחילה (ותכניות ברצף)",
+     "level": "required",
+     "basis": [
+      "תוספת שלישית §4"
+     ],
+     "match": [
+      "תכנית משביחה",
+      "התכנית המשביחה",
+      "תאריך תחילה"
+     ],
+     "suggest": {
+      "name": "bettermentPlans",
+      "type": "group",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "priorState",
+     "label": "מצב תכנוני קודם: ייעוד, זכויות עיקרי/שירות, קומות, צפיפות",
+     "level": "required",
+     "basis": [
+      "6.1 (פירוט גבוה)"
+     ],
+     "match": [
+      "מצב קודם",
+      "מצב תכנוני קודם"
+     ],
+     "suggest": {
+      "name": "priorPlanningState",
+      "type": "textarea",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "newState",
+     "label": "מצב תכנוני חדש: אותם פרמטרים",
+     "level": "required",
+     "basis": [
+      "6.1 (פירוט גבוה)"
+     ],
+     "match": [
+      "מצב חדש",
+      "מצב תכנוני חדש"
+     ],
+     "suggest": {
+      "name": "newPlanningState",
+      "type": "textarea",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "share",
+     "label": "שטח המגרש וחלקו היחסי של החייב בזכויות",
+     "level": "required",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "חלק יחסי",
+      "החלק היחסי",
+      "חלקו של"
+     ],
+     "suggest": {
+      "name": "liableShare",
+      "type": "text",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "expropriatedFree",
+     "label": "שטחים שהופקעו ללא תמורה (מוחרגים)",
+     "level": "conditional",
+     "basis": [
+      "תוספת שלישית §4(6)"
+     ],
+     "match": [
+      "ללא תמורה",
+      "הופקע"
+     ],
+     "suggest": {
+      "name": "expropriatedWithoutCompensation",
+      "type": "currency",
+      "suffix": "מ\"ר",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "values",
+     "label": "שווי מצב קודם, שווי מצב חדש, ההשבחה וההיטל (50%)",
+     "level": "required",
+     "basis": [
+      "תוספת שלישית §3"
+     ],
+     "match": [
+      "שווי מצב קודם",
+      "שווי מצב חדש",
+      "השבחה",
+      "היטל"
+     ],
+     "suggest": {
+      "name": "priorStateValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "vat",
+     "label": "מע\"מ בשוק מעורב (נכלל / לא נכלל)",
+     "level": "conditional",
+     "basis": [
+      "11.0א",
+      "בר\"מ 1621/18"
+     ],
+     "match": [
+      "מעמ",
+      "מע\"מ"
+     ],
+     "suggest": {
+      "name": "vatStatus",
+      "type": "radio",
+      "section": "valuation",
+      "values": [
+       "כולל מע\"מ",
+       "לא כולל מע\"מ"
+      ]
+     }
+    },
+    {
+     "id": "realisation",
+     "label": "מימוש: סוג ותאריך (מכר / היתר / הקלה / שימוש בפועל)",
+     "level": "required",
+     "basis": [
+      "תוספת שלישית"
+     ],
+     "match": [
+      "מימוש"
+     ],
+     "suggest": {
+      "name": "realisationType",
+      "type": "select",
+      "section": "general",
+      "values": [
+       "העברה בתמורה",
+       "היתר בנייה",
+       "הקלה",
+       "שימוש חורג",
+       "שימוש בפועל"
+      ]
+     }
+    },
+    {
+     "id": "exemption",
+     "label": "פטור: הסעיף ונתוני הזכאות (140 מ\"ר, מחסן 20 מ\"ר, 4 שנות מגורים, תמ\"א 38)",
+     "level": "conditional",
+     "basis": [
+      "תוספת שלישית §19"
+     ],
+     "match": [
+      "פטור"
+     ],
+     "suggest": {
+      "name": "exemptionSection",
+      "type": "selectOther",
+      "section": "general",
+      "values": [
+       "19(ג)(1) הרחבת דירה עד 140 מ\"ר",
+       "19(ג1) מחסן עד 20 מ\"ר",
+       "תמ\"א 38",
+       "אחר"
+      ]
+     }
+    },
+    {
+     "id": "proceeding",
+     "label": "הליך: שומת הוועדה, שומה נגדית, שמאי מכריע / ועדת ערר ומועדים (45 יום)",
+     "level": "conditional",
+     "basis": [
+      "תקנות סדרי דין 2008"
+     ],
+     "match": [
+      "שמאי מכריע",
+      "ועדת ערר",
+      "שומה נגדית",
+      "שומת הוועדה"
+     ],
+     "suggest": {
+      "name": "proceedingStage",
+      "type": "select",
+      "section": "general",
+      "values": [
+       "שומת הוועדה",
+       "שומה נגדית",
+       "שמאי מכריע",
+       "ועדת ערר"
+      ]
+     }
+    },
+    {
+     "id": "contingentFee",
+     "label": "שכר מותנה - הצהרה",
+     "level": "conditional",
+     "basis": [
+      "תקנה 4"
+     ],
+     "match": [
+      "שכר מותנה"
+     ],
+     "suggest": {
+      "name": "contingentFee",
+      "type": "checkbox",
+      "section": "declarations"
+     }
+    }
+   ]
+  },
+  "compensation197": {
+   "title": "ירידת ערך - סעיף 197",
+   "when": "a claim for planning damage from a plan (פגיעה במקרקעין)",
+   "valuationDate": "יום תחילת התכנית הפוגעת",
+   "notes": [
+    "אין תקן ייעודי. 6.1 - פירוט תכנוני גבוה. התביעה תוך 3 שנים מתחילת התכנית. נוסח סעיף 200 (פגיעה בתחום הסביר) - [unverified]."
+   ],
+   "items": [
+    {
+     "id": "plan",
+     "label": "התכנית הפוגעת: מספר ותאריך תחילה",
+     "level": "required",
+     "basis": [
+      "סעיף 197"
+     ],
+     "match": [
+      "תכנית פוגעת",
+      "התכנית הפוגעת"
+     ],
+     "suggest": {
+      "name": "injuringPlan",
+      "type": "text",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "within",
+     "label": "בתחום התכנית או גובל בה",
+     "level": "required",
+     "basis": [
+      "סעיף 197"
+     ],
+     "match": [
+      "גובל",
+      "בתחום התכנית"
+     ],
+     "suggest": {
+      "name": "withinOrAdjacent",
+      "type": "radio",
+      "section": "planning",
+      "values": [
+       "בתחום התכנית",
+       "גובל"
+      ]
+     }
+    },
+    {
+     "id": "holder",
+     "label": "בעל הזכות ביום תחילת התכנית",
+     "level": "required",
+     "basis": [
+      "סעיף 197"
+     ],
+     "match": [
+      "בעל הזכות ביום"
+     ],
+     "suggest": {
+      "name": "holderAtPlanDate",
+      "type": "text",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "states",
+     "label": "מצב תכנוני לפני ואחרי",
+     "level": "required",
+     "basis": [
+      "6.1"
+     ],
+     "match": [
+      "לפני התכנית",
+      "אחרי התכנית",
+      "מצב קודם",
+      "מצב חדש"
+     ],
+     "suggest": {
+      "name": "planningBeforeAfter",
+      "type": "textarea",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "values",
+     "label": "שווי לפני, שווי אחרי וירידת הערך",
+     "level": "required",
+     "basis": [
+      "סעיף 197"
+     ],
+     "match": [
+      "ירידת ערך",
+      "שווי לפני",
+      "שווי אחרי"
+     ],
+     "suggest": {
+      "name": "depreciationAmount",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "claimDate",
+     "label": "תאריך הגשת התביעה (מעקב 3 שנים)",
+     "level": "recommended",
+     "basis": [
+      "סעיף 197"
+     ],
+     "match": [
+      "הגשת התביעה",
+      "תאריך התביעה"
+     ],
+     "suggest": {
+      "name": "claimFiledDate",
+      "type": "date",
+      "section": "general"
+     }
+    }
+   ]
+  },
+  "expropriation": {
+   "title": "הפקעה ופיצויי הפקעה",
+   "when": "compensation for expropriation (פקודת הקרקעות, חוק התכנון §188 ואילך, פקודת הדרכים)",
+   "valuationDate": "יום פרסום הודעת ההפקעה [מקור משני - לאמת מול תיקון 2010]",
+   "notes": [
+    "אין תקן ייעודי (בתוכנית העבודה). שיעורי הניכוי ללא תמורה - [unverified], לאמת לפי מקור הסמכות."
+   ],
+   "items": [
+    {
+     "id": "authority",
+     "label": "הגורם המפקיע ומקור הסמכות",
+     "level": "required",
+     "basis": [
+      "פקודת הקרקעות / חוק התכנון"
+     ],
+     "match": [
+      "גורם מפקיע",
+      "מקור הסמכות"
+     ],
+     "suggest": {
+      "name": "expropriatingAuthority",
+      "type": "selectOther",
+      "section": "general",
+      "values": [
+       "ועדה מקומית (חוק התכנון)",
+       "פקודת הקרקעות",
+       "פקודת הדרכים ומסילות הברזל"
+      ]
+     }
+    },
+    {
+     "id": "publication",
+     "label": "תאריכי פרסום ההודעות ומספר ילקוט פרסומים",
+     "level": "required",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "ילקוט",
+      "פרסום ההודעה",
+      "רשומות"
+     ],
+     "suggest": {
+      "name": "publicationDetails",
+      "type": "group",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "areas",
+     "label": "לכל חלקה: שטח כולל, שטח מופקע, אחוז מופקע",
+     "level": "required",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "שטח מופקע",
+      "אחוז מופקע"
+     ],
+     "suggest": {
+      "name": "expropriatedParcels",
+      "type": "group",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "deduction",
+     "label": "ניכוי ללא תמורה (%)",
+     "level": "conditional",
+     "basis": [
+      "[unverified]"
+     ],
+     "match": [
+      "ניכוי",
+      "ללא תמורה"
+     ],
+     "suggest": {
+      "name": "uncompensatedDeduction",
+      "type": "textPom",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "remainder",
+     "label": "ירידת ערך היתרה (הפקעה חלקית)",
+     "level": "conditional",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "יתרה",
+      "החלק הנותר"
+     ],
+     "suggest": {
+      "name": "remainderDepreciation",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "attached",
+     "label": "מחוברים (מבנים, גידולים)",
+     "level": "conditional",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "מחוברים"
+     ],
+     "suggest": {
+      "name": "attachedStructures",
+      "type": "group",
+      "section": "property"
+     }
+    },
+    {
+     "id": "objection",
+     "label": "מועדי השגה (90 יום) והליך בוועדת ההשגות",
+     "level": "recommended",
+     "basis": [
+      "ועדת השגות לפיצויי הפקעה"
+     ],
+     "match": [
+      "השגה"
+     ],
+     "suggest": {
+      "name": "objectionDeadline",
+      "type": "date",
+      "section": "general"
+     }
+    }
+   ]
+  },
+  "rmi": {
+   "title": "רשות מקרקעי ישראל - דמי היתר / הסכמה / היוון / נחלות",
+   "when": "appraisals for or against רמ\"י charges, leasehold, nachala",
+   "valuationDate": "[unverified] - לפי סוג העסקה ונוהלי רמ\"י",
+   "notes": [
+    "שומת רמ\"י לפי נהליה אינה 'מבוססת הנחה' (1.1 §8). בשומה לחשבון רמ\"י - לציין גם שווי תאורטי ללא מע\"מ (11.0א).",
+    "שיעורי התשלום (31%, 160 מ\"ר, 91%, שליש) ממקור משני - לאמת מול קובץ ההחלטות לפני שימוש."
+   ],
+   "items": [
+    {
+     "id": "fileNo",
+     "label": "מספר תיק ברמ\"י",
+     "level": "recommended",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "תיק רמי",
+      "תיק ברמ\"י",
+      "מספר התיק"
+     ],
+     "suggest": {
+      "name": "rmiFileNumber",
+      "type": "text",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "contract",
+     "label": "חוזה: חכירה / פיתוח, מהוון או לא, תאריך ותקופה, ייעוד, קיבולת, דמי חכירה",
+     "level": "required",
+     "basis": [
+      "7.1",
+      "19",
+      "17.1"
+     ],
+     "match": [
+      "חוזה חכירה",
+      "חוזה פיתוח",
+      "מהוון",
+      "קיבולת"
+     ],
+     "suggest": {
+      "name": "rmiContract",
+      "type": "group",
+      "section": "legal"
+     },
+     "parts": {
+      "סוג החוזה": [
+       "חוזה חכירה",
+       "חוזה פיתוח",
+       "סוג החוזה"
+      ],
+      "מהוון": [
+       "מהוון"
+      ],
+      "תקופה": [
+       "תקופ*",
+       "תוקף",
+       "סיום",
+       "מתאריך",
+       "עד לתאריך",
+       "start*",
+       "end*"
+      ],
+      "ייעוד": [
+       "ייעוד",
+       "מטרת*"
+      ],
+      "קיבולת": [
+       "קיבולת"
+      ]
+     }
+    },
+    {
+     "id": "dealType",
+     "label": "סוג העסקה (תוספת בנייה / שינוי ייעוד / פיצול / היוון / הסכמה / הקניית בעלות / דמי שימוש)",
+     "level": "required",
+     "basis": [
+      "קובץ החלטות מועצת מקרקעי ישראל"
+     ],
+     "match": [
+      "סוג העסקה",
+      "דמי היתר",
+      "דמי הסכמה",
+      "היוון"
+     ],
+     "suggest": {
+      "name": "rmiDealType",
+      "type": "select",
+      "section": "general",
+      "values": [
+       "תוספת בנייה",
+       "שינוי ייעוד",
+       "שינוי ניצול",
+       "פיצול",
+       "היוון",
+       "הסכמה להעברה",
+       "הקניית בעלות",
+       "דמי שימוש"
+      ]
+     }
+    },
+    {
+     "id": "states",
+     "label": "מצב קודם לפי החוזה ומצב חדש לפי התכנית; שטח תוספת עיקרי ושירות",
+     "level": "required",
+     "basis": [
+      "רמ\"י"
+     ],
+     "match": [
+      "מצב קודם",
+      "מצב חדש",
+      "שטח תוספת"
+     ],
+     "suggest": {
+      "name": "rmiStates",
+      "type": "textarea",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "values",
+     "label": "שווי מצב קודם, שווי מצב חדש, ערך מאפיין, התחייבויות ציבוריות לניכוי",
+     "level": "required",
+     "basis": [
+      "רמ\"י"
+     ],
+     "match": [
+      "ערך מאפיין",
+      "שווי מצב"
+     ],
+     "suggest": {
+      "name": "rmiPriorValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "priority",
+     "label": "אזור עדיפות לאומית / הנחות",
+     "level": "conditional",
+     "basis": [
+      "רמ\"י"
+     ],
+     "match": [
+      "עדיפות"
+     ],
+     "suggest": {
+      "name": "priorityArea",
+      "type": "selectOther",
+      "section": "general",
+      "values": [
+       "אין",
+       "א'",
+       "ב'",
+       "קו עימות"
+      ]
+     }
+    },
+    {
+     "id": "nachala",
+     "label": "נחלה: חלקת מגורים, יח\"ד קיימות, תשלומים קודמים, דונמים חקלאיים",
+     "level": "conditional",
+     "basis": [
+      "החלטה 1553"
+     ],
+     "match": [
+      "נחלה",
+      "חלקת המגורים"
+     ],
+     "suggest": {
+      "name": "nachalaDetails",
+      "type": "group",
+      "section": "property"
+     }
+    },
+    {
+     "id": "objection",
+     "label": "השגה: שלב, תאריך קבלת השומה, הסכום במחלוקת",
+     "level": "conditional",
+     "basis": [
+      "רמ\"י 2026"
+     ],
+     "match": [
+      "השגה"
+     ],
+     "suggest": {
+      "name": "rmiObjectionStage",
+      "type": "select",
+      "section": "general",
+      "values": [
+       "לפני השגה",
+       "השגה לשמאי הממשלתי",
+       "ועדת השגות"
+      ]
+     }
+    }
+   ]
+  },
+  "urbanRenewal21": {
+   "title": "פינוי-בינוי (תקן 21.1)",
+   "when": "economic-feasibility appraisal of a פינוי-בינוי plan, consideration for typical / specific units; NOT תמ\"א 38",
+   "valuationDate": "סמוך לדיון בהפקדה, לא יותר מ-6 חודשים לפני החלטת ההפקדה; ביקור עד 3 חודשים",
+   "notes": [
+    "חלק א' = שומה מבוססת הנחה. תבנית Excel רשמית מצורפת לתקן - הטופס לא צריך לשכפל את כל התחשיב, רק את הנתונים שהדוח מציג.",
+    "רווח יזמי מזערי לפי טבלת השמאי הממשלתי ולפי מחוז - הטבלה מתעדכנת, לבדוק את העדכנית."
+   ],
+   "items": [
+    {
+     "id": "existing",
+     "label": "מצב קיים: שטח המתחם, מבנים, יח\"ד, טיפוסי דירות ושטחן (לפי היתרים)",
+     "level": "required",
+     "basis": [
+      "21.1"
+     ],
+     "match": [
+      "מצב קיים",
+      "שטח המתחם",
+      "טיפוסי דירות"
+     ],
+     "suggest": {
+      "name": "existingUnits",
+      "type": "group",
+      "section": "property"
+     }
+    },
+    {
+     "id": "signatures",
+     "label": "עיקרי ההסכם עם היזם ומספר החותמים",
+     "level": "required",
+     "basis": [
+      "21.1"
+     ],
+     "match": [
+      "חותמים",
+      "הסכם עם היזם"
+     ],
+     "suggest": {
+      "name": "signedOwners",
+      "type": "number",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "programme",
+     "label": "התכנית המוצעת: שלב, מבנים, יח\"ד, שטחים עיקרי/שירות, דירות טיפוסיות, חניה",
+     "level": "required",
+     "basis": [
+      "21.1"
+     ],
+     "match": [
+      "תכנית מוצעת",
+      "פרוגרמה",
+      "יחידות מוצעות"
+     ],
+     "suggest": {
+      "name": "proposedProgramme",
+      "type": "group",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "consideration",
+     "label": "תמורה לבעלים: דירת תמורה, הצמדות, שכ\"ד, הובלות, מסים",
+     "level": "required",
+     "basis": [
+      "21.1"
+     ],
+     "match": [
+      "תמורה",
+      "דירת תמורה"
+     ],
+     "suggest": {
+      "name": "ownerConsideration",
+      "type": "group",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "costs",
+     "label": "עלויות: בנייה, עקיפות, הריסה, עלויות דיירים, מסים, מימון, תשלומי קרקע",
+     "level": "required",
+     "basis": [
+      "21.1 §5.14"
+     ],
+     "match": [
+      "עלויות",
+      "עלות"
+     ],
+     "suggest": {
+      "name": "projectCosts",
+      "type": "group",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "profit",
+     "label": "רווח יזמי (₪, %) מול טבלת השמאי הממשלתי והמחוז",
+     "level": "required",
+     "basis": [
+      "21.1"
+     ],
+     "match": [
+      "רווח יזמי"
+     ],
+     "suggest": {
+      "name": "developerProfitPct",
+      "type": "textPom",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "sensitivity",
+     "label": "רגישות: רווח מול תמורה בתוספת 0 / 12 / 25 מ\"ר",
+     "level": "required",
+     "basis": [
+      "21.1"
+     ],
+     "match": [
+      "רגישות"
+     ],
+     "suggest": {
+      "name": "sensitivityTable",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "specificUnit",
+     "label": "חלק ג' - יחידה ספציפית: שטח, הצמדות, מיקום, שיפוץ ב-7 שנים, זכויות נוספות, נגישות",
+     "level": "conditional",
+     "basis": [
+      "21.1 חלק ג'"
+     ],
+     "match": [
+      "שיפוץ מהותי",
+      "יחידה ספציפית"
+     ],
+     "suggest": {
+      "name": "specificUnitFactors",
+      "type": "textarea",
+      "section": "property"
+     }
+    }
+   ]
+  },
+  "court": {
+   "title": "חוות דעת לבית משפט / פירוק שיתוף / איזון משאבים",
+   "when": "expert opinion for court (party or court-appointed), partition, divorce, inheritance disputes",
+   "valuationDate": "לפי החלטת בית המשפט; בגירושין - מועד הקרע",
+   "notes": [
+    "שומה מקיפה בכותרת 'חוות דעת של מומחה' עם הצהרת המומחה (נספח ב' לתקן 1.1) וביקור אישי של השמאי החותם (תקנה 1(3)(א))."
+   ],
+   "items": [
+    {
+     "id": "caseDetails",
+     "label": "מספר תיק, בית משפט, הצדדים",
+     "level": "required",
+     "basis": [
+      "הנחיות הנהלת בתי המשפט"
+     ],
+     "match": [
+      "מספר תיק",
+      "בית משפט",
+      "הצדדים",
+      "תובע",
+      "נתבע"
+     ],
+     "suggest": {
+      "name": "courtCaseNumber",
+      "type": "text",
+      "section": "general"
+     }
+    },
+    {
+     "id": "appointment",
+     "label": "תאריך החלטת המינוי והשאלות כלשונן",
+     "level": "conditional",
+     "basis": [
+      "הנחיות הנהלת בתי המשפט"
+     ],
+     "match": [
+      "החלטת המינוי",
+      "השאלות",
+      "שאלות בית המשפט"
+     ],
+     "suggest": {
+      "name": "courtQuestions",
+      "type": "group",
+      "section": "general"
+     }
+    },
+    {
+     "id": "documents",
+     "label": "מסמכים שנבדקו וחוות הדעת של הצדדים",
+     "level": "required",
+     "basis": [
+      "הנחיות הנהלת בתי המשפט"
+     ],
+     "match": [
+      "מסמכים שנבדקו",
+      "חוות דעת הצדדים"
+     ],
+     "suggest": {
+      "name": "reviewedDocuments",
+      "type": "textarea",
+      "section": "general"
+     }
+    },
+    {
+     "id": "expertDeclaration",
+     "label": "הצהרת מומחה (סעיף 24 לפקודת הראיות), השכלה וניסיון",
+     "level": "required",
+     "basis": [
+      "1.1 נספח ב'"
+     ],
+     "match": [
+      "השכלה",
+      "ניסיון",
+      "הצהרת המומחה"
+     ],
+     "suggest": {
+      "name": "expertBackground",
+      "type": "textarea",
+      "section": "declarations"
+     },
+     "note": "בדרך כלל קבוע לשמאי - עדיף טקסט קבוע בתבנית"
+    },
+    {
+     "id": "conflict",
+     "label": "הצהרת ניגוד עניינים (טופס 1, תקנות רשימת מומחים 2022)",
+     "level": "conditional",
+     "basis": [
+      "הנחיות הנהלת בתי המשפט"
+     ],
+     "match": [
+      "ניגוד עניינים"
+     ],
+     "suggest": {
+      "name": "conflictDeclared",
+      "type": "checkbox",
+      "section": "declarations"
+     }
+    },
+    {
+     "id": "partition",
+     "label": "פירוק שיתוף: חלקי השותפים, היתכנות חלוקה בעין, שווי השלם ושווי החלקים",
+     "level": "conditional",
+     "basis": [
+      "חוק המקרקעין §37"
+     ],
+     "match": [
+      "פירוק שיתוף",
+      "חלוקה בעין"
+     ],
+     "suggest": {
+      "name": "inKindDivisionFeasible",
+      "type": "radio",
+      "section": "valuation",
+      "values": [
+       "אפשרית",
+       "לא אפשרית",
+       "אפשרית חלקית"
+      ]
+     }
+    },
+    {
+     "id": "separationDate",
+     "label": "מועד הקרע (איזון משאבים)",
+     "level": "conditional",
+     "basis": [
+      "פסיקה"
+     ],
+     "match": [
+      "מועד הקרע"
+     ],
+     "suggest": {
+      "name": "separationDate",
+      "type": "date",
+      "section": "general"
+     }
+    }
+   ]
+  },
+  "financial17": {
+   "title": "דיווח כספי / ניירות ערך (תקן 17.1, IFRS 13, IAS 40)",
+   "when": "valuations for financial statements, prospectuses, related-party deals, REIT",
+   "valuationDate": "סוף תקופת הדיווח / לפי בקשת הלקוח",
+   "notes": [
+    "כותרת: שומת מקרקעין מקיפה. התחשיב בגוף השומה. אסור להניח עובדות שאפשר לאמת."
+   ],
+   "items": [
+    {
+     "id": "engagement",
+     "label": "פרטי התקשרות: החברה, מזמין ותפקידו, מועד, נסיבות (תשקיף / דוחות / עסקת בעלי עניין)",
+     "level": "required",
+     "basis": [
+      "17.1 §4.2"
+     ],
+     "match": [
+      "התקשרות",
+      "נסיבות",
+      "תשקיף"
+     ],
+     "suggest": {
+      "name": "engagementDetails",
+      "type": "textarea",
+      "section": "general"
+     }
+    },
+    {
+     "id": "classification",
+     "label": "סיווג חשבונאי (נדל\"ן להשקעה / רכוש קבוע)",
+     "level": "required",
+     "basis": [
+      "17.1 §4.2"
+     ],
+     "match": [
+      "סיווג חשבונאי",
+      "נדלן להשקעה",
+      "רכוש קבוע"
+     ],
+     "suggest": {
+      "name": "accountingClass",
+      "type": "radio",
+      "section": "general",
+      "values": [
+       "נדל\"ן להשקעה",
+       "רכוש קבוע",
+       "מלאי"
+      ]
+     }
+    },
+    {
+     "id": "dependence",
+     "label": "שכר מותנה, שיפוי ותלות (או הצהרה שאין)",
+     "level": "required",
+     "basis": [
+      "17.1 §4.2"
+     ],
+     "match": [
+      "שיפוי",
+      "תלות"
+     ],
+     "suggest": {
+      "name": "dependenceDeclaration",
+      "type": "textarea",
+      "section": "declarations"
+     }
+    },
+    {
+     "id": "consent",
+     "label": "הסכמה לפרסום",
+     "level": "required",
+     "basis": [
+      "17.1 §4.5"
+     ],
+     "match": [
+      "הסכמה לפרסום"
+     ],
+     "suggest": {
+      "name": "publicationConsent",
+      "type": "checkbox",
+      "section": "declarations"
+     }
+    },
+    {
+     "id": "tenants",
+     "label": "טבלת שוכרים לפי שימוש וענף; שוכר מעל 20% (בלי שם); חידושים בשנה האחרונה; תפוסה",
+     "level": "required",
+     "basis": [
+      "17.1 §4.12"
+     ],
+     "match": [
+      "שוכרים",
+      "תפוסה"
+     ],
+     "suggest": {
+      "name": "tenantsTable",
+      "type": "group",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "purchase5y",
+     "label": "רכישה ב-5 השנים האחרונות: תאריך ומחיר",
+     "level": "required",
+     "basis": [
+      "17.1 §4.13"
+     ],
+     "match": [
+      "רכישה",
+      "מחיר רכישה"
+     ],
+     "suggest": {
+      "name": "lastPurchase",
+      "type": "group",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "otherAppraisals",
+     "label": "עסקאות ושומות (גם של שמאים אחרים) ב-3 שנים; פער מעל 20% מודגש",
+     "level": "required",
+     "basis": [
+      "17.1 §4.13"
+     ],
+     "match": [
+      "שומות קודמות",
+      "שומות אחרות"
+     ],
+     "suggest": {
+      "name": "priorValuations",
+      "type": "group",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "sensitivity",
+     "label": "ניתוח רגישות (בהיוון - על שיעור ההיוון)",
+     "level": "required",
+     "basis": [
+      "17.1 §4.15"
+     ],
+     "match": [
+      "רגישות"
+     ],
+     "suggest": {
+      "name": "sensitivityAnalysis",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "bookValue",
+     "label": "ערך בספרים",
+     "level": "conditional",
+     "basis": [
+      "17.1 §4.17"
+     ],
+     "match": [
+      "ערך בספרים"
+     ],
+     "suggest": {
+      "name": "bookValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "expectedTaxes",
+     "label": "מסים ותשלומים צפויים (היטל השבחה, רמ\"י, תביעות צד ג')",
+     "level": "required",
+     "basis": [
+      "17.1 §4.18"
+     ],
+     "match": [
+      "היטל השבחה",
+      "דמי היתר",
+      "תביעות"
+     ],
+     "suggest": {
+      "name": "expectedCharges",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "hbu",
+     "label": "פער בין שימוש בפועל לשימוש מיטבי; סיכונים והזדמנויות",
+     "level": "required",
+     "basis": [
+      "17.1 §4.14"
+     ],
+     "match": [
+      "שימוש מיטבי",
+      "סיכונים"
+     ],
+     "suggest": {
+      "name": "highestBestUse",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    }
+   ]
+  },
+  "rentIncome": {
+   "title": "דמי שכירות ראויים / נכס מניב (תקן 2.1)",
+   "when": "fair-rent appraisals, income-producing commercial property",
+   "valuationDate": "לפי ההזמנה",
+   "notes": [
+    "2.1: היוון לצמיתות של דמי שכירות ראויים ברוטו בשיעור היוון כולל - הוצאות תפעול ותפוסה בתוך השיעור, לא סעיפים נפרדים."
+   ],
+   "items": [
+    {
+     "id": "rentComparables",
+     "label": "לפחות 3 נתוני שכירות: תאריך, שטח, מחיר למ\"ר, התאמות, מקור",
+     "level": "required",
+     "basis": [
+      "2.1 §5.3"
+     ],
+     "match": [
+      "נתוני שכירות",
+      "עסקאות שכירות",
+      "השוואת שכירות"
+     ],
+     "suggest": {
+      "name": "rentComparables",
+      "type": "group",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "existingLease",
+     "label": "שכירות קיימת: תקופה, דמי שכירות, אופציות",
+     "level": "conditional",
+     "basis": [
+      "7.1 §5.6"
+     ],
+     "match": [
+      "שכירות קיימת",
+      "חוזה שכירות",
+      "דמי שכירות"
+     ],
+     "suggest": {
+      "name": "rentalGroup",
+      "type": "group",
+      "section": "legal"
+     },
+     "parts": {
+      "תקופה": [
+       "תקופ*",
+       "תוקף",
+       "סיום",
+       "מתאריך",
+       "עד לתאריך",
+       "start*",
+       "end*"
+      ],
+      "דמי שכירות": [
+       "דמי שכירות",
+       "שכר דירה"
+      ],
+      "אופציות": [
+       "אופצי*"
+      ]
+     }
+    },
+    {
+     "id": "fairRent",
+     "label": "דמי שכירות ראויים (חודשי / שנתי)",
+     "level": "required",
+     "basis": [
+      "2.1",
+      "מילון"
+     ],
+     "match": [
+      "דמי שכירות ראויים",
+      "שכר דירה ראוי"
+     ],
+     "suggest": {
+      "name": "fairRentMonthly",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "capRate",
+     "label": "שיעור היוון כולל ומקורו (סקר תשואות ועורכו)",
+     "level": "conditional",
+     "basis": [
+      "2.1 §5.5"
+     ],
+     "match": [
+      "שיעור היוון",
+      "תשואה"
+     ],
+     "suggest": {
+      "name": "capRate",
+      "type": "textPom",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "tenants",
+     "label": "טבלת שוכרים ותפוסה",
+     "level": "conditional",
+     "basis": [
+      "2.1",
+      "19",
+      "17.1"
+     ],
+     "match": [
+      "שוכרים",
+      "תפוסה"
+     ],
+     "suggest": {
+      "name": "tenantsTable",
+      "type": "group",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "advantage",
+     "label": "יתרון / חיסרון כלכלי (שכירות בפועל מול ראויה)",
+     "level": "conditional",
+     "basis": [
+      "2.1 §5"
+     ],
+     "match": [
+      "יתרון כלכלי",
+      "חיסרון כלכלי"
+     ],
+     "suggest": {
+      "name": "economicAdvantage",
+      "type": "currency",
+      "section": "valuation"
+     }
+    }
+   ]
+  },
+  "land": {
+   "title": "קרקע ומגרשים (תקן 3.1)",
+   "when": "vacant land, land component, demolition-HBU property, agricultural land",
+   "valuationDate": "לפי ההזמנה",
+   "notes": [
+    "חילוץ: תוקף נמוך כשרכיב הקרקע מתחת ל-20% מהשווי כבנוי (ללא מע\"מ), בינוני מעל 20%."
+   ],
+   "items": [
+    {
+     "id": "rightsTable",
+     "label": "טבלת זכויות: עיקרי, שירות, יח\"ד, קומות, תכסית, קווי בניין",
+     "level": "required",
+     "basis": [
+      "3.1",
+      "6.1"
+     ],
+     "match": [
+      "זכויות",
+      "תכסית",
+      "קווי בניין"
+     ],
+     "suggest": {
+      "name": "buildingRights",
+      "type": "group",
+      "section": "planning"
+     }
+    },
+    {
+     "id": "comparables",
+     "label": "עסקאות השוואה לקרקע (3 לפחות)",
+     "level": "required",
+     "basis": [
+      "3.1 §4.4"
+     ],
+     "match": [
+      "עסקאות השוואה",
+      "עסקאות"
+     ],
+     "suggest": {
+      "name": "landComparables",
+      "type": "group",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "residual",
+     "label": "חילוץ: שווי כבנוי, מע\"מ, רווח יזמי, עלויות בנייה ומקורן, מס רכישה, יתרה לקרקע",
+     "level": "conditional",
+     "basis": [
+      "3.1 §5.5"
+     ],
+     "match": [
+      "חילוץ",
+      "שיורי",
+      "רווח יזמי",
+      "עלויות בנייה"
+     ],
+     "suggest": {
+      "name": "residualInputs",
+      "type": "group",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "equivalent",
+     "label": "מ\"ר מבונה אקוויוולנטי (יחידת תועלת)",
+     "level": "recommended",
+     "basis": [
+      "3.1 §4.6"
+     ],
+     "match": [
+      "אקוויוולנטי",
+      "אקויולנטי"
+     ],
+     "suggest": {
+      "name": "equivalentBuiltArea",
+      "type": "currency",
+      "suffix": "מ\"ר",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "expectations",
+     "label": "קרקע חקלאית: שווי עתידי צפוי, שיעור הפקעה צפוי, זמן לשינוי ייעוד, שיעור היוון, עלויות",
+     "level": "conditional",
+     "basis": [
+      "3.1 §6"
+     ],
+     "match": [
+      "ציפיות",
+      "שינוי ייעוד",
+      "שווי עתידי"
+     ],
+     "suggest": {
+      "name": "expectationInputs",
+      "type": "group",
+      "section": "valuation"
+     }
+    }
+   ]
+  },
+  "expectations22": {
+   "title": "קרקע המשווקת לציבור על בסיס ציפיות (תקן 22 - מחייב)",
+   "when": "land sold to 3+ buyers on expectation of rezoning",
+   "valuationDate": "מועד עריכת השומה",
+   "notes": [
+    "מחייב מכוח תקנות הגנת הצרכן 2016. התמצית לצרכן: סבירות, ייעוד נוכחי, שווי נוכחי, זמן צפוי, סך העלויות וחלק הרוכש."
+   ],
+   "items": [
+    {
+     "id": "stateA",
+     "label": "מצב א' - שווי לפי תכניות מאושרות",
+     "level": "required",
+     "basis": [
+      "22"
+     ],
+     "match": [
+      "מצב א"
+     ],
+     "suggest": {
+      "name": "stateAValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "stateB",
+     "label": "מצב ב' - שווי היפותטי לפי הפרוגרמה ומוסר הפרוגרמה",
+     "level": "required",
+     "basis": [
+      "22"
+     ],
+     "match": [
+      "מצב ב",
+      "פרוגרמה"
+     ],
+     "suggest": {
+      "name": "stateBValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "likelihood",
+     "label": "סבירות מימוש הפרוגרמה",
+     "level": "required",
+     "basis": [
+      "22 §5.11א"
+     ],
+     "match": [
+      "סבירות"
+     ],
+     "suggest": {
+      "name": "programmeLikelihood",
+      "type": "select",
+      "section": "valuation",
+      "values": [
+       "גבוהה",
+       "בינונית",
+       "נמוכה",
+       "קלושה"
+      ]
+     }
+    },
+    {
+     "id": "time",
+     "label": "משך זמן צפוי ואבני דרך",
+     "level": "required",
+     "basis": [
+      "22 §5.11ב"
+     ],
+     "match": [
+      "משך זמן",
+      "אבני דרך"
+     ],
+     "suggest": {
+      "name": "expectedTimeline",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "costs",
+     "label": "עלויות: תכנון, פיתוח, היטלים, פולשים, מושע (וחלק הרוכש)",
+     "level": "required",
+     "basis": [
+      "22 §5.11ג"
+     ],
+     "match": [
+      "עלויות"
+     ],
+     "suggest": {
+      "name": "expectedCosts",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "clarification",
+     "label": "ההבהרה המחייבת (לא שווי שוק, לא לערכאות)",
+     "level": "required",
+     "basis": [
+      "22 §6"
+     ],
+     "match": [
+      "הבהרה",
+      "אינה מיועדת"
+     ],
+     "suggest": {
+      "name": "mandatoryClarification",
+      "type": "textarea",
+      "section": "declarations"
+     },
+     "note": "נוסח קבוע - טקסט קבוע בתבנית"
+    }
+   ]
+  },
+  "inspection20": {
+   "title": "דו\"ח בדיקה ללא הערכת שווי (תקן 20)",
+   "when": "due-diligence inspection without a value",
+   "valuationDate": "מועד הדוח",
+   "notes": [
+    "הצהרת חובה: הדוח אינו הערכת שווי ואינו ייעוץ משפטי. מסים - רשימה בלי סכומים."
+   ],
+   "items": [
+    {
+     "id": "orderedItems",
+     "label": "אילו פריטים אופציונליים הוזמנו (חלוקה, גמר, מצב פיזי, עסקאות)",
+     "level": "required",
+     "basis": [
+      "20"
+     ],
+     "match": [
+      "פריטים שהוזמנו",
+      "היקף הבדיקה"
+     ],
+     "suggest": {
+      "name": "inspectionScope",
+      "type": "checkboxList",
+      "section": "general",
+      "values": [
+       "חלוקה פנימית",
+       "רמת גמר",
+       "מצב פיזי",
+       "עסקאות השוואה"
+      ]
+     }
+    },
+    {
+     "id": "taxesList",
+     "label": "מסים והיטלים שעשויים לחול (בלי סכומים)",
+     "level": "required",
+     "basis": [
+      "20"
+     ],
+     "match": [
+      "מסים",
+      "היטלים",
+      "taxesAndLevies"
+     ],
+     "suggest": {
+      "name": "applicableTaxes",
+      "type": "checkboxList",
+      "section": "valuation",
+      "values": [
+       "מס שבח",
+       "מס רכישה",
+       "היטל השבחה",
+       "דמי היתר לרמ\"י",
+       "מע\"מ"
+      ]
+     }
+    }
+   ]
+  },
+  "review14": {
+   "title": "סקירת שומה (תקן 14)",
+   "when": "reviewing another appraiser's report (desk, field, full)",
+   "valuationDate": "של השומה הנסקרת",
+   "notes": [
+    "בסקירה עיונית ובסקירת שטח: 'בסקירה זו לא אומתו הנתונים שהוצגו בשומה הנסקרת'."
+   ],
+   "items": [
+    {
+     "id": "reviewKind",
+     "label": "סוג הסקירה (עיונית / שטח / מלאה)",
+     "level": "required",
+     "basis": [
+      "14"
+     ],
+     "match": [
+      "סוג הסקירה"
+     ],
+     "suggest": {
+      "name": "reviewKind",
+      "type": "radio",
+      "section": "general",
+      "values": [
+       "סקירה עיונית",
+       "סקירת שטח",
+       "סקירה מלאה"
+      ]
+     }
+    },
+    {
+     "id": "reviewed",
+     "label": "השומה הנסקרת: שמאי ורישיון, תאריך וסימוכין, נכס, מטרה, מועד קובע, המשתמש המיועד",
+     "level": "required",
+     "basis": [
+      "14"
+     ],
+     "match": [
+      "השומה הנסקרת",
+      "שמאי השומה"
+     ],
+     "suggest": {
+      "name": "reviewedAppraisal",
+      "type": "group",
+      "section": "general"
+     }
+    },
+    {
+     "id": "findings",
+     "label": "בדיקת הנתונים, השיטות והתחשיב; מסקנות",
+     "level": "required",
+     "basis": [
+      "14"
+     ],
+     "match": [
+      "ממצאים",
+      "מסקנות הסקירה"
+     ],
+     "suggest": {
+      "name": "reviewFindings",
+      "type": "textarea",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "otherValue",
+     "label": "שווי אחר (אם נקבע) + תחשיב",
+     "level": "conditional",
+     "basis": [
+      "14"
+     ],
+     "match": [
+      "שווי אחר"
+     ],
+     "suggest": {
+      "name": "reviewerValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    }
+   ]
+  },
+  "insurance": {
+   "title": "ערך כינון / ביטוח",
+   "when": "reinstatement value for insurance (also inside bank and collateral reports)",
+   "valuationDate": "לפי ההזמנה",
+   "notes": [
+    "19 §4.16: עלות תחליף (לא תעתיק), ללא מע\"מ, ללא רכיב יזמות, בהתעלם מפחת פיזי. המילון לא מגדיר 'ערך כינון'."
+   ],
+   "items": [
+    {
+     "id": "builtComponents",
+     "label": "שטחים בנויים לפי רכיב",
+     "level": "required",
+     "basis": [
+      "19 §4.16"
+     ],
+     "match": [
+      "שטח בנוי",
+      "שטחים בנויים"
+     ],
+     "suggest": {
+      "name": "builtComponents",
+      "type": "group",
+      "section": "property"
+     }
+    },
+    {
+     "id": "method",
+     "label": "שיטת בנייה ורמת גמר",
+     "level": "required",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "שיטת בנייה",
+      "סוג הבנייה",
+      "רמת גמר"
+     ],
+     "suggest": {
+      "name": "constructionMethod",
+      "type": "selectOther",
+      "section": "building"
+     }
+    },
+    {
+     "id": "costPerSqm",
+     "label": "עלות למ\"ר ומקורה",
+     "level": "required",
+     "basis": [
+      "פרקטיקה"
+     ],
+     "match": [
+      "עלות למ\"ר",
+      "עלות למטר",
+      "מחשבון עלויות"
+     ],
+     "suggest": {
+      "name": "costPerSqm",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "reinstatement",
+     "label": "ערך כינון ללא מע\"מ",
+     "level": "required",
+     "basis": [
+      "19 §4.16"
+     ],
+     "match": [
+      "ערך כינון",
+      "reinstatement"
+     ],
+     "suggest": {
+      "name": "reinstatementValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    }
+   ]
+  },
+  "taxSale": {
+   "title": "מיסוי מקרקעין - מס שבח / מס רכישה / שומה עצמית",
+   "when": "value for a sale/purchase declaration, objections (טופס 7013), appeals",
+   "valuationDate": "יום המכירה / יום הרכישה",
+   "notes": [
+    "הגדרת 'שווי' בחוק לא אומתה מהנוסח - [unverified]."
+   ],
+   "items": [
+    {
+     "id": "dates",
+     "label": "יום המכירה ויום הרכישה",
+     "level": "required",
+     "basis": [
+      "חוק מיסוי מקרקעין"
+     ],
+     "match": [
+      "יום המכירה",
+      "יום הרכישה",
+      "תאריך המכירה"
+     ],
+     "suggest": {
+      "name": "saleDate",
+      "type": "date",
+      "section": "general"
+     }
+    },
+    {
+     "id": "soldShare",
+     "label": "החלק הנמכר / המועבר לפי הנסח",
+     "level": "required",
+     "basis": [
+      "הצהרה"
+     ],
+     "match": [
+      "החלק הנמכר",
+      "חלק נמכר"
+     ],
+     "suggest": {
+      "name": "soldShare",
+      "type": "text",
+      "section": "legal"
+     }
+    },
+    {
+     "id": "consideration",
+     "label": "שווי המכירה - התמורה ורכיביה",
+     "level": "required",
+     "basis": [
+      "חוק מיסוי מקרקעין"
+     ],
+     "match": [
+      "תמורה",
+      "שווי המכירה"
+     ],
+     "suggest": {
+      "name": "saleConsideration",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "purchaseValue",
+     "label": "שווי הרכישה",
+     "level": "conditional",
+     "basis": [
+      "חוק מיסוי מקרקעין"
+     ],
+     "match": [
+      "שווי הרכישה",
+      "שווי רכישה"
+     ],
+     "suggest": {
+      "name": "purchaseValue",
+      "type": "currency",
+      "section": "valuation"
+     }
+    },
+    {
+     "id": "stage",
+     "label": "שלב ההליך (שומה עצמית / השגה / ערר), מועד ההודעה, מספר תיק",
+     "level": "conditional",
+     "basis": [
+      "רשות המסים"
+     ],
+     "match": [
+      "השגה",
+      "ערר",
+      "שומה עצמית"
+     ],
+     "suggest": {
+      "name": "taxProceedingStage",
+      "type": "select",
+      "section": "general",
+      "values": [
+       "שומה עצמית",
+       "השגה",
+       "ערר"
+      ]
+     }
+    }
+   ]
+  }
+ }
+}

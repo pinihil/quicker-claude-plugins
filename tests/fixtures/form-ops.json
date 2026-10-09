@@ -1,0 +1,251 @@
+{
+  "templateId": "00000000-0000-4000-8000-0000000000f1",
+  "note": "בדיקה",
+  "expect": [
+    "OK",
+    "OK",
+    "OK",
+    "OK",
+    "OK",
+    "OK",
+    "OK",
+    "OK",
+    "OK",
+    "OK",
+    "OK",
+    "OK",
+    "ERR",
+    "ERR",
+    "ERR",
+    "ERR",
+    "ERR",
+    "ERR",
+    "WARN",
+    "NOOP",
+    "WARN"
+  ],
+  "ops": [
+    {
+      "op": "add_field",
+      "section": "propertyFields",
+      "after": "livingRoomFloorType",
+      "field": {
+        "name": "kitchenFloorType",
+        "label": "סוג ריצוף במטבח",
+        "type": "selectOther",
+        "values": [
+          "קרמיקה",
+          "פרקט"
+        ],
+        "aiConfig": {
+          "prompt": "מהביקור בנכס."
+        }
+      },
+      "why": "טבלת הגמר בדוח"
+    },
+    {
+      "op": "add_field",
+      "group": "extract",
+      "after": "extractDate",
+      "field": {
+        "name": "extractSource",
+        "label": "מקור הנסח",
+        "type": "selectOther",
+        "values": [
+          "אתר טאבו",
+          "לשכת רישום"
+        ],
+        "aiConfig": {
+          "prompt": "מראש הנסח."
+        }
+      }
+    },
+    {
+      "op": "add_field",
+      "section": "valueFields",
+      "after": "marketValue",
+      "field": {
+        "name": "collateralValue",
+        "label": "ערך למטרת בטוחה",
+        "type": "currency",
+        "aiConfig": {
+          "prompt": "אל תמלא - שיקול דעת של השמאי."
+        }
+      }
+    },
+    {
+      "op": "add_section",
+      "key": "collateralFields",
+      "title": "בטוחה לאשראי",
+      "tab": "appraisal",
+      "after": "valueFields"
+    },
+    {
+      "op": "add_field",
+      "section": "collateralFields",
+      "field": {
+        "name": "forcedSaleDiscount",
+        "label": "שיעור הנחת מכירה כפויה",
+        "type": "textPom",
+        "aiConfig": {
+          "prompt": "אל תמלא - שיקול דעת של השמאי."
+        }
+      }
+    },
+    {
+      "op": "update_field",
+      "path": "oldNotes",
+      "set": {
+        "label": "הערות (ישן)"
+      }
+    },
+    {
+      "op": "show_field",
+      "path": "oldNotes"
+    },
+    {
+      "op": "add_options",
+      "path": "reportKind",
+      "values": [
+        "שומה מלאה"
+      ]
+    },
+    {
+      "op": "add_group",
+      "section": "legalFields",
+      "definition": {
+        "groupName": "tenants",
+        "title": "שוכרים",
+        "aiConfig": {
+          "prompt": "מחוזי השכירות."
+        },
+        "fields": [
+          {
+            "name": "tenantName",
+            "label": "שם השוכר",
+            "type": "text",
+            "aiConfig": {
+              "prompt": "x"
+            }
+          },
+          {
+            "name": "tenantRent",
+            "label": "דמי שכירות חודשיים",
+            "type": "currency",
+            "aiConfig": {
+              "prompt": "x"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "op": "hide_field",
+      "path": "loanNumber"
+    },
+    {
+      "op": "move_field",
+      "path": "photos",
+      "toSection": "valueFields"
+    },
+    {
+      "op": "update_field",
+      "path": "leaseEnd",
+      "set": {
+        "if": {
+          "conditions": [
+            {
+              "field": "reportKind",
+              "operator": "equals",
+              "value": "שומה מורחבת"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "add_field",
+      "section": "propertyFields",
+      "field": {
+        "name": "floor",
+        "label": "קומה",
+        "type": "text"
+      }
+    },
+    {
+      "op": "add_options",
+      "path": "referrer",
+      "values": [
+        "בנק ג"
+      ]
+    },
+    {
+      "op": "update_field",
+      "path": "apartmentArea",
+      "set": {
+        "type": "number"
+      }
+    },
+    {
+      "op": "add_field",
+      "section": "propertyFields",
+      "field": {
+        "name": "badIf",
+        "label": "בדיקה",
+        "if": "project.additionalDetails.nope == 'x'"
+      }
+    },
+    {
+      "op": "move_field",
+      "path": "extract.extractDate",
+      "toSection": "valueFields"
+    },
+    {
+      "op": "add_field",
+      "group": "borrowers",
+      "field": {
+        "name": "borrowerCity",
+        "label": "עיר",
+        "systemPath": "p.city"
+      }
+    },
+    {
+      "op": "add_group",
+      "group": "extract.extractOwners",
+      "definition": {
+        "groupName": "ownerReps",
+        "title": "מיופי כוח",
+        "aiConfig": {
+          "prompt": "x"
+        },
+        "fields": [
+          {
+            "name": "repName",
+            "label": "שם מיופה הכוח",
+            "aiConfig": {
+              "prompt": "x"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "op": "hide_field",
+      "path": "loanNumber"
+    },
+    {
+      "op": "add_field",
+      "section": "valueFields",
+      "after": "extendedNotes",
+      "field": {
+        "name": "extendedValueBasis",
+        "label": "בסיס השווי בשומה המורחבת",
+        "type": "textarea",
+        "aiConfig": {
+          "prompt": "מפרק השומה בדוח. אם אין - השאר ריק."
+        }
+      },
+      "why": "נכנס לכרטיס המותנה - צריך להיות WARN"
+    }
+  ]
+}
