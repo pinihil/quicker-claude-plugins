@@ -70,9 +70,8 @@ python3 $S/build_catalog.py form.json work/ [--vars reply1.json ...] [--extra-sy
 No form JSON at all (rare): `build_catalog.py --vars reply1.json reply2.json ... work/` - the replies must
 then be saved with their `formVariables`, and the catalog has no display conditions or units.
 
-Known gaps of `get_word_template_variables` (October 2026), all covered by the catalog: groups nested
-three levels deep come back as nameless `{"type":"text"}` items (e.g. the owners/lessees inside
-`nesachTaboHachirot`); `planDataStatus` is typed `html` but is a loop; areas are typed `currency`
+Known gaps of `get_word_template_variables` (October 2026), all covered by the catalog:
+`planDataStatus` is typed `html` but is a loop; areas are typed `currency`
 without the מ"ר unit; display conditions and linked fields are missing. Where the reply and the catalog
 disagree on these, follow the catalog.
 
@@ -206,6 +205,11 @@ Tag-writing rules - details and the tested reasons are in `references/template-s
 - Keep conditions minimal and meaningful. A condition on every single line makes the template
   unmaintainable; wrap the lines whose label would otherwise hang empty or whose text is wrong for
   some reports.
+- **Details of a form question print under the question's answer.** When the catalog gives a field a
+  `shown-if` (the antiquities map opens on "הנכס בתחום אתר עתיקות"), wrap the lines that print it in
+  that condition, not only in `{#p.ad.x}`: a hidden field keeps its old value, so a map uploaded before
+  the answer changed to "לא נבדק" would still print. Each answer gets its own wording - "לא נבדק"
+  prints the office's sentence for an unchecked item (an assumption), never the "no" wording.
 
 ### 4. Apply and validate
 

@@ -17,6 +17,12 @@ op added), the way the server engine does, and reports per op:
     ERR   the server will reject it - fix before planning (a rejected op rejects the whole plan)
 Exit code: 0 = no errors, 1 = errors.
 
+After the ops, the display logic of the fields the plan touches is audited on the resulting form
+(formlogic.py - the same checks as audit_form.py): a detail shown for every answer of its question, a
+condition comparing to an option that doesn't exist, a negated condition, a broken chain. Those are
+WARN on the op that touched the field; findings the form already had are marked as such. The preview
+gets a "מפת התנאים" section: what each answer of the questions involved shows.
+
 The server (plan_form_template_changes) stays the authority: only it knows how many projects hold
 data in a field and which Word templates read it, so removals and option removals are only WARN here.
 Rules mirror the Quicker engine as of October 2026 (server/controllers/form-template-ops.js).
@@ -29,10 +35,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from formlib import (ORG_LIST_BY_COLUMN, TYPE_LABELS_HE, is_allowed_system_path, key_of, label_of,  # noqa: E402
-                     load_form, load_json_any, section_keys, section_title, similarity, walk)
+                     load_form, load_json_any, norm, section_keys, section_title, similarity, walk)
+from formlib import options_of  # noqa: E402
+from formlogic import NARRATIVE, audit, is_gate, matrix, reads, value_tests, visibility_conds  # noqa: E402
 
 OPS = ["set_form_props", "add_section", "add_field", "add_group", "update_field", "add_options",
-       "remove_options", "move_field", "hide_field", "show_field", "remove_field"]
+       "remove_options", "move_field", "hide_field", "show_field", "remove_field", "update_row", "update_section"]
 MAX_OPS = 60
 NAME_RE = re.compile(r"^[a-z][a-zA-Z0-9]*$")
 RESERVED = {"true", "false", "null", "undefined", "this", "constructor", "prototype", "project", "toString",
@@ -46,13 +54,13 @@ NEEDS_VALUES = {"select", "selectOther", "radio", "checkboxList"}
 TYPE_CONVERSIONS = {"text": ["textarea", "textSod", "textPom"], "textSod": ["text", "textPom"],
                     "textPom": ["text", "textSod"], "textarea": ["richtext"], "select": ["selectOther", "radio"],
                     "radio": ["select", "selectOther"], "number": ["currency"]}
-FIELD_KEYS = {"name", "label", "type", "values", "suffix", "class", "explan", "aiConfig", "if", "systemPath",
+FIELD_KEYS = {"name", "label", "type", "values", "suffix", "class", "explan", "aiConfig", "if", "systemPath", "defaultValue",
               "limit", "placeholder", "required"}
 GROUP_KEYS = {"groupName", "title", "subTitle", "explan", "if", "aiConfig", "fields"}
 STRUCT_OPERATORS = {"equals", "notEquals", "greaterThan", "lessThan", "greaterOrEqual", "lessOrEqual",
                     "contains", "notContains", "isEmpty", "isNotEmpty", "isTrue", "isFalse"}
 CLASS_TOKEN = re.compile(r"^(col-(xs|sm|md|lg)-(1[0-2]|[1-9])|col-auto)$")
-MAX_DEPTH_ROW_GROUP, MAX_DEPTH_FIELD_GROUP, SAFE_DEPTH = 3, 2, 2
+MAX_DEPTH_ROW_GROUP, MAX_DEPTH_FIELD_GROUP = 3, 2
 
 AREA_HINT = re.compile(r"שטח|מ\"ר|מ״ר|\bמטר\b|\bמטרים\b|\bמ\"ר\b|דונם")
 MONEY_HINT = re.compile(r"שווי|ערך|סכום|מחיר|עלות|דמי|היטל|מס |₪|תשלום|פיצוי|הכנסה|הוצא")
@@ -198,7 +206,7 @@ def check_if(cond, top_names):
             f = c.get("field")
             if not isinstance(f, str) or not re.match(r"^[A-Za-z_$][\w$]*$", f) or f in FORBIDDEN_MEMBERS:
                 raise OpErr(f'"{f}" is not a field name - a structured condition reads a top-level field by name')
-            if f not in top_names:
+            if top_names is not None and f not in top_names:
                 raise OpErr(f'תנאי התצוגה מתייחס לשדה שלא קיים בטופס: {f}')
             if isinstance(c.get("value"), (dict, list)):
                 raise OpErr("a condition value must be text, a number or true/false")
@@ -225,10 +233,122 @@ def check_if(cond, top_names):
     roots = COND_ROOT.findall(s)
     if "project" in idents and not roots:
         raise OpErr("a value must start with project.additionalDetails.<field>")
-    unknown = sorted({r for r in roots if r not in top_names})
+    unknown = sorted({r for r in roots if r not in top_names}) if top_names is not None else []
     if unknown:
         raise OpErr(f"תנאי התצוגה מתייחס לשדות שלא קיימים בטופס: {', '.join(unknown)}")
     return cond.strip()
+
+
+def _is_number(v):
+    try:
+        float(str(v).strip())
+        return True
+    except ValueError:
+        return False
+
+
+def check_default(value, field):
+    """A default value as the field type stores it (server: checkDefaultValue)."""
+    t = field.get("type") or "text"
+    if t in ("image", "html", "read", "readNumber"):
+        raise OpErr(f"a {t} field has no default value")
+    if t in ("text", "textarea", "textPom", "textSod"):
+        return text(value, "defaultValue", 4000, required=True)
+    if t == "richtext":
+        return text(value, "defaultValue", 8000, required=True)   # plain text becomes <p> paragraphs on the server
+    if t == "checkbox":
+        if not isinstance(value, bool):
+            raise OpErr("the default of a checkbox is true or false")
+        return value
+    if t in ("number", "currency"):
+        if isinstance(value, bool) or not _is_number(value):
+            raise OpErr("the default of a number field is a number")
+        return float(value) if not isinstance(value, (int, float)) else value
+    if t == "date":
+        if not isinstance(value, str) or not re.match(r"^\d{4}-\d{2}-\d{2}$", value):
+            raise OpErr("the default of a date field is YYYY-MM-DD")
+        return value
+    opts = options_of(field) if field.get("values") else None
+    if t == "checkboxList":
+        if not isinstance(value, list) or not value:
+            raise OpErr("the default of a multiple-choice field is a list of its options")
+        lst = [text(str(v), "a default option", 200, required=True) for v in value]
+        bad = [v for v in lst if opts is not None and v not in opts]
+        if bad:
+            raise OpErr(f"ברירת המחדל כוללת ערכים שאינם אפשרויות של השדה: {', '.join(bad)}")
+        return list(dict.fromkeys(lst))
+    v = text(str(value), "defaultValue", 200, required=True)
+    if t in ("select", "radio") and opts is not None and v not in opts:
+        raise OpErr(f'ברירת המחדל "{v}" אינה אחת מהאפשרויות של השדה')
+    return v
+
+
+def _closest(value, opts):
+    hits = [o for o in opts if value.replace('"', "") in o.replace('"', "") or o.replace('"', "") in value.replace('"', "")]
+    if hits:
+        return hits[:3]
+    return [o for o in sorted(opts, key=lambda o: -similarity(value, o))[:2] if similarity(value, o) > 0.3]
+
+
+def validate_condition(F, cond, warn):
+    """A condition read against the form it lands in (server: validateConditionInForm): the fields it reads
+    exist, a checkbox is compared with true/false, a number field with a number, a choice field with one of
+    its options. Otherwise the field would never show - the server rejects the plan."""
+    if cond is None:
+        return
+    top = F.top_names()
+    unknown = sorted(r for r in reads(cond) if r not in top)
+    if unknown:
+        raise OpErr(f"תנאי התצוגה מתייחס לשדות שלא קיימים בטופס: {', '.join(unknown)}")
+    idx = {i["path"]: i for i in walk(F.schema)}
+    for path, value, how in value_tests(cond):
+        info = idx.get(path)
+        if not info:
+            if "." in path:
+                raise OpErr(f'תנאי התצוגה מתייחס לשדה "{path}" שלא קיים בטופס')
+            continue
+        if info["kind"] != "field":
+            continue
+        node = info["node"]
+        t = node.get("type") or "text"
+        subj = label_of(node) or info["key"]
+        if t == "checkbox":
+            if how in ("eq", "ne"):
+                raise OpErr(f'תנאי התצוגה משווה את "{subj}" ל"{value}", אבל זו תיבת סימון ששומרת כן/לא - '
+                            "משווים ל-true או false")
+            continue
+        if t in ("number", "currency"):
+            if how in ("eq", "ne") and value.strip() and not _is_number(value):
+                raise OpErr(f'תנאי התצוגה משווה את "{subj}", שדה מספרי, לטקסט "{value}"')
+            continue
+        if t not in NEEDS_VALUES or not value:
+            continue
+        lst = _org_list(F, info)
+        own = options_of(node)
+        if lst:
+            if value not in own:
+                warn(f'"{value}" בתנאי על "{subj}" נבדק בשרת מול רשימת הארגון ({lst}) - הנוסח המדויק ב-get_option_list')
+            continue
+        if not own:
+            continue
+        exact = how in ("eq", "ne") or t == "checkboxList"
+        if (value in own) if exact else any(value.lower() in o.lower() for o in own):
+            continue
+        sugg = _closest(value, own)
+        msg = (f'תנאי התצוגה משווה את "{subj}" ל"{value}", שאינו אחת מהאפשרויות שלו - השדה לא היה מוצג אף פעם.'
+               + (f" האם התכוונת ל: {', '.join(chr(34) + o + chr(34) for o in sugg)}?" if sugg else ""))
+        if t == "selectOther":
+            warn(msg + " (השרת מקבל ערך כזה רק אם פרויקטים כבר שמרו אותו)")
+        else:
+            raise OpErr(msg)
+
+
+def validate_node_conditions(F, node, warn):
+    if node.get("if") is not None:
+        validate_condition(F, node["if"], warn)
+    for child in node.get("fields") or []:
+        if isinstance(child, dict):
+            validate_node_conditions(F, child, warn)
 
 
 def build_field(inp, top_level, top_names):
@@ -271,9 +391,11 @@ def build_field(inp, top_level, top_names):
             raise OpErr(f'systemPath "{inp["systemPath"]}" is not a binding a form may have')
         f["systemPath"] = inp["systemPath"]
     if inp.get("if") is not None:
-        f["if"] = check_if(inp["if"], top_names)
+        f["if"] = check_if(inp["if"], None)          # what it reads is checked once the field is in place
     if inp.get("aiConfig") is not None:
         f["aiConfig"] = check_ai(inp["aiConfig"])
+    if inp.get("defaultValue") is not None:
+        f["defaultValue"] = check_default(inp["defaultValue"], f)
     return f
 
 
@@ -306,7 +428,7 @@ def build_group(inp, depth, max_depth, row_group, top_names):
     if inp.get("explan"):
         g["explan"] = text(inp["explan"], "explan", 500)
     if inp.get("if") is not None:
-        g["if"] = check_if(inp["if"], top_names)
+        g["if"] = check_if(inp["if"], None)
     if inp.get("aiConfig") is not None:
         g["aiConfig"] = check_ai(inp["aiConfig"])
     taken, kids = set(), []
@@ -423,9 +545,10 @@ def advise(field, warn, existing_labels, path):
         warn(f'התווית "{lab}" לא בעברית - המשתמשים רואים אותה בטופס')
     if not (field.get("aiConfig") or {}).get("prompt"):
         warn("אין aiConfig.prompt - AI Fill ינחש לפי התווית בלבד. כדאי לכתוב מאיזה מסמך ובאיזה פורמט")
-    if AREA_HINT.search(lab) and t in ("text", "number") and not PERCENT_HINT.search(lab):
+    distance = re.search(r"מרחק|גובה|אורך|רוחב|עומק|רדיוס", lab)
+    if AREA_HINT.search(lab) and not distance and t in ("text", "number") and not PERCENT_HINT.search(lab):
         warn('נראה כמו שטח: מקובל currency עם suffix "מ\\"ר" (מפרידי אלפים ועשרוניים)')
-    if AREA_HINT.search(lab) and t == "currency" and not field.get("suffix"):
+    if AREA_HINT.search(lab) and not distance and t == "currency" and not field.get("suffix"):
         warn('שטח בשדה currency בלי suffix יוצג עם ₪ - הוסיפו suffix "מ\\"ר"')
     if MONEY_HINT.search(lab) and t in ("text", "number") and not PERCENT_HINT.search(lab) and not AREA_HINT.search(lab):
         warn("נראה כמו סכום כסף: מקובל currency (₪ ומפרידי אלפים)")
@@ -433,13 +556,12 @@ def advise(field, warn, existing_labels, path):
         warn("נראה כמו תאריך: type date מאפשר עיצוב | date בתבנית ומיון")
     if PERCENT_HINT.search(lab) and t == "number":
         warn('שיעור/אחוז בשדה number: אין עשרוניים ושליליים נוחים - שקלו textPom או currency עם suffix "%"')
+    if t == "textarea" and NARRATIVE.search(" " + norm(lab) + " "):
+        warn('טקסט מפורט ("' + lab + '"): עדיף richtext - פסקאות, הדגשות ורשימות; בתבנית {p.ad.x | html}')
     vals = field.get("values") or []
     if t in ("select", "radio") and len(vals) > 15:
         warn("רשימה ארוכה ב-select/radio - שקלו selectOther (מאפשר ערך חופשי)")
-    for e_path, e_lab in existing_labels:
-        if e_path != path and similarity(lab, e_lab) >= 0.8:
-            warn(f'תווית דומה לשדה קיים `{e_path}` ("{e_lab}") - לוודא שזה נתון אחר ולא כפילות')
-            break
+    # similar labels are checked once the whole plan has run (main) - a later op may rename either field
 
 
 # --------------------------------------------------------------------------- ops
@@ -461,8 +583,9 @@ def run_op(F, op, warn, notes):
         return {"what": "מאפייני הטופס", "where": "-", "detail": ", ".join(f"{k}={op[k]}" for k in op if k not in ("op", "why"))}
 
     if name == "add_section":
-        keys_only(op, ["key", "title", "icon", "tab", "after"])
+        keys_only(op, ["key", "title", "icon", "tab", "after", "aiConfig"])
         key = new_name(op.get("key"), "section key")
+        ai = check_ai(op.get("aiConfig"))
         title = text(op.get("title"), "title", 80, required=True)
         icon = op.get("icon", "fa-th-list")
         if not isinstance(icon, str) or not re.match(r"^fa-[a-z0-9-]{1,40}$", icon):
@@ -475,7 +598,7 @@ def run_op(F, op, warn, notes):
         if op.get("after") is not None and op["after"] not in (tab.get("sections") or []):
             raise OpErr(f'הסעיף "{op["after"]}" (after) לא נמצא בלשונית "{tab.get("key")}"')
         F.schema[key] = []
-        F.md.setdefault("sections", {})[key] = {"title": title, "icon": icon}
+        F.md.setdefault("sections", {})[key] = {"title": title, "icon": icon, **({"aiConfig": ai} if ai else {})}
         secs = list(tab.get("sections") or [])
         secs.insert(secs.index(op["after"]) + 1 if op.get("after") else len(secs), key)
         tab["sections"] = secs
@@ -497,6 +620,7 @@ def run_op(F, op, warn, notes):
         else:
             anchor = place_in_group(par["group"]["node"], f, op.get("after"))
             where = f'קבוצה "{label_of(par["group"]["node"])}"'
+        validate_node_conditions(F, f, warn)
         notes["added"].append(path)
         return {"what": f'שדה חדש "{f["label"]}"', "path": path, "type": f["type"],
                 "where": where + (f' אחרי "{label_of(anchor)}"' if anchor else " (בסוף)"),
@@ -517,10 +641,6 @@ def run_op(F, op, warn, notes):
         path = grp["groupName"] if "section" in par else f'{par["group"]["path"]}.{grp["groupName"]}'
         if ("section" in par and grp["groupName"] in top) or F.index().get(path):
             raise OpErr(f'השם "{grp["groupName"]}" כבר בשימוש - להוספת שדה לקבוצה קיימת add_field עם group')
-        deepest = _deepest(grp, depth)
-        if deepest > SAFE_DEPTH:
-            warn(f"קבוצה בעומק {deepest}: השדות שבה לא יופיעו ב-get_word_template_variables (פער ידוע, אוקטובר 2026) - "
-                 "אי אפשר יהיה למפות אותם לתבנית Word. עדיף לשטח לעומק 2")
         for child in grp["fields"]:
             if not child.get("repeatable"):
                 advise(child, lambda m, c=child: warn(f'{c["name"]}: {m}'), [], None)
@@ -536,6 +656,7 @@ def run_op(F, op, warn, notes):
         else:
             anchor = place_in_group(par["group"]["node"], grp, op.get("after"))
             where = f'בתוך הקבוצה "{label_of(par["group"]["node"])}"'
+        validate_node_conditions(F, grp, warn)
         notes["added"].append(path)
         cols = ", ".join(label_of(c) for c in grp["fields"])
         return {"what": f'קבוצה חוזרת "{label_of(grp)}"', "path": path, "type": "group",
@@ -551,7 +672,8 @@ def run_op(F, op, warn, notes):
         if "name" in st or "groupName" in st:
             raise OpErr("השם הפנימי לא משתנה (הוא מפתח הנתונים ותגיות ה-Word) - משנים label")
         allowed = ["title", "subTitle", "explan", "if", "aiConfig"] if info["kind"] == "group" else \
-            ["label", "explan", "aiConfig", "if", "class", "suffix", "limit", "placeholder", "required", "type"]
+            ["label", "explan", "aiConfig", "if", "class", "suffix", "limit", "placeholder", "required", "type",
+             "defaultValue"]
         bad = set(st) - set(allowed)
         if bad:
             raise OpErr(f"cannot set {', '.join(sorted(bad))} on a {info['kind']}. Allowed: {', '.join(allowed)}")
@@ -566,13 +688,19 @@ def run_op(F, op, warn, notes):
                 if v in NEEDS_VALUES and not node.get("values") and not node.get("valuesSource"):
                     raise OpErr(f"a {v} field needs options - add_options first")
                 if v == "richtext":
-                    warn("ערכים קיימים יוצגו כטקסט מעוצב; ירידות שורה בטקסט קיים מתאחדות בעריכה הבאה")
+                    warn("ערכים קיימים יוצגו כטקסט מעוצב; ירידות שורה בטקסט קיים מתאחדות בעריכה הבאה. כל תבנית Word "
+                         "שמדפיסה את השדה צריכה לעבור ל-{p.ad.x | html} (בלי זה ה-HTML מודפס כטקסט) - התוכנית "
+                         "מפרטת את התבניות בשינוי סוג; לעדכן אותן בסקיל התבניות לפני שמשתמשים בשדה")
             elif k == "suffix" and v is not None and (st.get("type") or node.get("type")) != "currency":
                 raise OpErr("suffix is shown only on currency fields")
             elif k == "limit" and v is not None and (node.get("type") != "image" or not isinstance(v, int) or not 1 <= v <= 30):
                 raise OpErr("limit applies only to image fields, 1-30")
             elif k == "if" and v is not None:
-                check_if(v, top)
+                v = check_if(v, None)
+            elif k == "defaultValue" and v is not None:
+                v = check_default(v, {**node, "type": st.get("type") or node.get("type") or "text"})
+                warn("ברירת מחדל נכנסת רק לשדה ריק - בפרויקטים חדשים, בפרויקטים שלא מילאו אותו ובייצוא ל-Word; "
+                     "ערך שכבר נשמר לא משתנה (התוכנית אומרת בכמה פרויקטים)")
             elif k == "aiConfig" and v is not None:
                 check_ai(v)
             elif k == "class" and v is not None:
@@ -587,9 +715,11 @@ def run_op(F, op, warn, notes):
                 node.pop(k, None)
             else:
                 node[k] = v
+            if k == "if" and v is not None:
+                validate_condition(F, v, warn)
             names = {"label": "תווית", "explan": "הסבר", "aiConfig": "הנחיית AI", "if": "תנאי תצוגה", "class": "רוחב",
                      "suffix": "יחידה", "limit": "מספר תמונות", "placeholder": "טקסט דוגמה", "required": "חובה",
-                     "type": "סוג", "title": "כותרת", "subTitle": "כותרת"}
+                     "type": "סוג", "title": "כותרת", "subTitle": "כותרת", "defaultValue": "ברירת מחדל"}
             shown = "(הסרה)" if v is None else ("עודכנה" if k == "aiConfig" else _short(v))
             changes.append(f"{names.get(k, k)}: {shown}")
         return {"what": f'עדכון "{label_of(node)}"', "path": info["path"], "where": section_title(F.md, info["section"]),
@@ -686,6 +816,91 @@ def run_op(F, op, warn, notes):
         cont.pop(idx)
         return {"what": f'הסרת "{label_of(node)}"', "path": info["path"], "where": section_title(F.md, info["section"]), "detail": ""}
 
+    if name == "update_row":
+        keys_only(op, ["section", "field", "set"])
+        fld = op.get("field")
+        if not isinstance(fld, str) or "." in fld:
+            raise OpErr('field must name a field of the card, outside any group (e.g. "bankNotes")')
+        info = F.locate(fld)
+        if info["row_group"]:
+            raise OpErr(f'"{fld}" היא קבוצה חוזרת - את הכותרת, התנאי וההנחיה שלה משנים ב-update_field עם path "{fld}"')
+        if op.get("section") is not None and op["section"] != info["section"]:
+            raise OpErr(f'השדה "{fld}" נמצא בסעיף "{info["section"]}", לא בסעיף "{op["section"]}"')
+        st = op.get("set")
+        if not isinstance(st, dict) or not st:
+            raise OpErr("set must name at least one property to change")
+        permitted = ["title", "subTitle", "subHeader", "explan", "if", "aiConfig", "icon"]
+        bad = [k for k in st if k not in permitted]
+        if bad:
+            raise OpErr(f"cannot set {', '.join(bad)} on a card. Allowed: {', '.join(permitted)}")
+        row = next(r for r in F.schema[info["section"]] if isinstance(r, dict) and not r.get("repeatable")
+                   and any(n is info["node"] for n in r.get("fields") or []))
+        changes, updates = [], {}
+        for k, v in st.items():
+            if v is None:
+                pass
+            elif k == "if":
+                v = check_if(v, None)
+            elif k == "aiConfig":
+                v = check_ai(v)
+            elif k == "icon":
+                if not isinstance(v, str) or not re.match(r"^fa-[a-z0-9-]{1,40}$", v):
+                    raise OpErr('icon must be a Font Awesome 4 name like "fa-bank"')
+            else:
+                v = text(v, k, 500 if k == "explan" else 120, required=True)
+            if json.dumps(row.get(k), sort_keys=True, ensure_ascii=False) == json.dumps(v, sort_keys=True, ensure_ascii=False):
+                continue
+            updates[k] = v
+        if not updates:
+            return {"what": "no_op", "path": fld, "where": "", "detail": "הערכים כבר כאלה", "noop": True}
+        for k, v in updates.items():
+            if v is None:
+                row.pop(k, None)
+            else:
+                row[k] = v
+            changes.append(f'{ {"title": "כותרת", "subTitle": "כותרת משנה", "subHeader": "כותרת משנה", "explan": "הסבר", "if": "תנאי תצוגה", "aiConfig": "הנחיית AI", "icon": "סמל"}[k] }: '
+                           + ("(הסרה)" if v is None else ("עודכנה" if k == "aiConfig" else _short(v))))
+        if updates.get("if"):
+            validate_condition(F, updates["if"], warn)
+            warn("תנאי על כרטיס מסתיר את כל השדות שבו; התוכנית מפרטת תבניות Word שמדפיסות אותם (wordTemplatesStillPrinting)")
+        name_ = row.get("title") or ", ".join(label_of(n) for n in (row.get("fields") or [])[:3] if isinstance(n, dict))
+        return {"what": f'כרטיס "{name_}"', "path": fld, "where": section_title(F.md, info["section"]),
+                "type": "card", "detail": "; ".join(changes)}
+
+    if name == "update_section":
+        keys_only(op, ["key", "set"])
+        key = op.get("key")
+        if key not in section_keys(F.schema):
+            raise OpErr(f'הסעיף "{key}" לא קיים בטופס. סעיפים: {", ".join(section_keys(F.schema))}')
+        st = op.get("set")
+        if not isinstance(st, dict) or not st:
+            raise OpErr("set must name at least one property to change")
+        bad = [k for k in st if k not in ("title", "icon", "aiConfig")]
+        if bad:
+            raise OpErr(f"cannot set {', '.join(bad)} on a section. Allowed: title, icon, aiConfig")
+        sec = dict((F.md.setdefault("sections", {})).get(key) or {})
+        before = section_title(F.md, key)
+        changes = []
+        for k, v in st.items():
+            if k == "title":
+                v = text(v, "title", 80, required=True)
+            elif k == "aiConfig":
+                v = check_ai(v)
+            elif not isinstance(v, str) or not re.match(r"^fa-[a-z0-9-]{1,40}$", v):
+                raise OpErr('icon must be a Font Awesome 4 name like "fa-bank"')
+            if json.dumps(sec.get(k), sort_keys=True, ensure_ascii=False) == json.dumps(v, sort_keys=True, ensure_ascii=False):
+                continue
+            if v is None:
+                sec.pop(k, None)
+            else:
+                sec[k] = v
+            changes.append({"title": f'שם: {v}', "aiConfig": "הנחיית AI Fill של הסעיף" + (" תוסר" if v is None else " עודכנה"),
+                            "icon": "סמל"}[k])
+        if not changes:
+            return {"what": "no_op", "path": key, "where": "", "detail": "הערכים כבר כאלה", "noop": True}
+        F.md["sections"][key] = sec
+        return {"what": f'סעיף "{before}"', "path": None, "where": before, "detail": "; ".join(changes)}
+
     raise OpErr(f'unknown op "{name}". Known: {", ".join(OPS)}')
 
 
@@ -715,14 +930,6 @@ def _org_list(F, info):
         if target == info["key"] and col in ORG_LIST_BY_COLUMN:
             return ORG_LIST_BY_COLUMN[col]
     return None
-
-
-def _deepest(group, depth):
-    d = depth
-    for c in group.get("fields") or []:
-        if c.get("repeatable"):
-            d = max(d, _deepest(c, depth + 1))
-    return d
 
 
 def _short(v):
@@ -800,18 +1007,100 @@ def main():
         res.update({"i": i, "op": op.get("op") if isinstance(op, dict) else "?", "status": status, "messages": warns,
                     "why": (op.get("why") if isinstance(op, dict) else None) or why.get(str(i)) or why.get(res.get("path") or "", "")})
         results.append(res)
-        tag = {"OK": "OK  ", "WARN": "WARN", "ERR": "ERR ", "NOOP": "NOOP"}[status]
-        print(f"{tag} #{i} {res['op']} {res.get('path') or ''} - {res['what']}")
-        for m in warns:
-            print(f"       {m}")
     for key in notes["new_sections"]:
         if not F.schema.get(key):
             print(f"WARN new section {key} is empty - add its fields in the same plan")
             n_warn += 1
+
+    # labels very close to a field that was already in the form (final labels, same scope)
+    orig = {i["path"] for i in walk(form["schema"])}
+    final = {i["path"]: i for i in walk(F.schema)}
+    for r in results:
+        if r["status"] not in ("OK", "WARN") or r["op"] != "add_field" or r.get("path") not in final:
+            continue
+        me = final[r["path"]]
+        scope = me["path"].rsplit(".", 1)[0] if "." in me["path"] else ""
+        lab = label_of(me["node"])
+        for p, other in final.items():
+            if p == me["path"] or p not in orig or other["kind"] != "field":
+                continue
+            if (p.rsplit(".", 1)[0] if "." in p else "") != scope:
+                continue
+            if similarity(lab, label_of(other["node"])) >= 0.8:
+                r["messages"].append(f'תווית דומה לשדה קיים `{p}` ("{label_of(other["node"])}") - לוודא שזה נתון אחר ולא כפילות')
+                if r["status"] == "OK":
+                    r["status"] = "WARN"
+                    n_warn += 1
+                break
+
+    # display logic of what the plan touched, on the form after the plan
+    after = {**form, "schema": F.schema, "metadata": F.md}
+    touched, if_set = {}, set()
+    for op, r in zip(ops, results):
+        if r["status"] in ("OK", "WARN") and isinstance(op, dict) and (
+                "if" in (op.get("set") or {}) or "if" in (op.get("field") or {}) or "if" in (op.get("definition") or {})):
+            if_set.add(r.get("path"))
+    for r in results:
+        if r["status"] in ("OK", "WARN") and r.get("path") and r["op"] in (
+                "add_field", "add_group", "update_field", "add_options", "remove_options", "show_field", "move_field"):
+            touched[r["path"]] = r
+    logic, gates = [], []
+    if touched:
+        before = {(f["kind"], f["path"], f.get("gate")) for f in audit(form, only=set(touched))}
+        for f in audit(after, only=set(touched)):
+            if f["kind"].startswith("richtext"):
+                continue            # new fields: advise() spoke; existing ones: converting is the user's call
+            f["existing"] = (f["kind"], f["path"], f.get("gate")) in before and f["path"] not in if_set
+            if f["kind"] == "ungated" and f["path"] not in touched and f["path"] in orig:
+                # an existing field right after a NEW question: a detail only if the user means it
+                f["level"] = "check"
+                f["message"] += " - שדה קיים: אם הוא באמת פרט של השאלה החדשה, תנאי מעבר (form-design.md §8, כלל 9)"
+            logic.append(f)
+            owner = touched.get(f["path"]) or touched.get(f.get("gate") or "")
+            if owner and f["level"] in ("fix", "check") and not f["existing"]:
+                owner["messages"].append(f["message"] + (f' - תנאי מוצע: {f["suggest"]}' if f.get("suggest") else ""))
+                if owner["status"] == "OK":
+                    owner["status"] = "WARN"
+                    n_warn += 1
+        infos = list(walk(F.schema))
+        index = {i["path"]: i for i in infos}
+        top = {i["key"]: i for i in infos if i["top"]}
+        names = set()
+        for path in touched:
+            info = index.get(path)
+            if not info:
+                continue
+            if info["kind"] == "field" and is_gate(info["node"]):
+                names.add(path)
+            for c in visibility_conds(info, index):
+                names |= {k for k in reads(c) if k in top and is_gate(top[k]["node"])}
+        for f in logic:
+            if f.get("gate") in index and is_gate(index[f["gate"]]["node"]):
+                names.add(f["gate"])
+        gates = []
+        everything = audit(after) if names else []
+        for n in sorted(names):
+            if n not in index:
+                continue
+            always = [label_of(index[f["path"]]["node"]) or f["path"] for f in everything
+                      if f["kind"] == "ungated" and f.get("gate") == n and f["path"] in index]
+            gates.append((index[n], matrix(index[n], infos, index), index, always))
+    for r in results:                          # printed once every pass had its say
+        tag = {"OK": "OK  ", "WARN": "WARN", "ERR": "ERR ", "NOOP": "NOOP"}[r["status"]]
+        print(f"{tag} #{r['i']} {r['op']} {r.get('path') or ''} - {r['what']}")
+        for m in r["messages"]:
+            print(f"       {m}")
+    if logic:
+        print("\nDisplay logic after the plan (formlogic):")
+        for f in logic:
+            tag = {"fix": "FIX ", "check": "CHK ", "advice": "NOTE"}[f["level"]]
+            print(f"{tag} {f['path']}: {f['message']}" + (" [כבר בטופס]" if f["existing"] else ""))
+            if f.get("suggest"):
+                print(f"       תנאי מוצע: {f['suggest']}")
     print(f"\n{len(ops)} ops: {n_err} errors, {n_warn} warnings")
 
     if md_out:
-        write_preview(md_out, form, spec, results)
+        write_preview(md_out, form, spec, results, logic, gates)
         print(f"preview -> {md_out}")
     if payload_out and not n_err:
         clean = [{k: v for k, v in op.items() if k != "why"} for op in ops]
@@ -824,7 +1113,7 @@ def main():
     sys.exit(1 if n_err else 0)
 
 
-def write_preview(path, form, spec, results):
+def write_preview(path, form, spec, results, logic=(), gates=()):
     md = form.get("metadata") or {}
     lines = [f"## שינויים מוצעים בטופס \"{form.get('title')}\"", ""]
     if spec.get("note"):
@@ -844,6 +1133,16 @@ def write_preview(path, form, spec, results):
     noops = [r for r in results if r["status"] == "NOOP"]
     if noops:
         lines += ["", "כבר קיים בטופס (לא ישתנה): " + ", ".join(f"`{r.get('path')}`" for r in noops)]
+    old = [f for f in logic if f.get("existing") and f["level"] != "advice"]
+    if old:
+        lines += ["", "**בעיות תצוגה שכבר קיימות בטופס (התוכנית לא יצרה אותן - אפשר לתקן בתוכנית נפרדת):**"]
+        lines += [f"- `{f['path']}` - {f['message']}" for f in old]
+    gates = [g for g in gates if g[1] or g[3]]
+    if gates:
+        from audit_form import render_map
+        lines += ["", "### מפת התנאים (אחרי התוכנית)", "", "מה כל תשובה מציגה:", ""]
+        for g, m, index, always in gates:
+            lines += [render_map(g, m, index, md, always), ""]
     with open(path, "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
 

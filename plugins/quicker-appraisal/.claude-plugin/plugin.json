@@ -1,7 +1,7 @@
 {
   "name": "quicker-appraisal",
   "displayName": "Quicker Appraisal",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "description": "Quicker appraisal skills: turn Israeli real-estate appraisal Word reports into Quicker document templates (variables from your live form, conditions, loops, images - linted and test-rendered), and build or update your office's own appraisal form from your report formats, checked against the Israeli appraisal standards - every form change planned, approved by you, and reversible. הופך דוחות שמאות לתבניות Quicker ובונה את טופס השומה של המשרד.",
   "author": {
     "name": "Quicker",

@@ -17,8 +17,8 @@ form_index.md lists, tab by tab and section by section, every field and group wi
       [-> p.x]           linked to a project column (systemPath or projectFieldsMap)
       [org list: X]      options come from the organization's settings, not the form
       [AI]               has an AI Fill prompt
-      [depth 3]          a group three levels down (its fields are missing from
-                         get_word_template_variables as of October 2026)
+      [depth 3]          a group three levels down - the deepest level, no group can be
+                         nested inside it
 form_index.json holds the same, keyed by path, plus the name registry check_ops.py uses.
 """
 import json
@@ -28,7 +28,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from formlib import (TYPE_LABELS_HE, bindings, label_of, load_form, options_of, org_list_of,  # noqa: E402
-                     key_of, section_keys, section_title, similarity, tabs_of, walk, camel_words)
+                     key_of, norm, section_keys, section_title, similarity, tabs_of, walk, camel_words)
 
 
 def build(form):
@@ -48,6 +48,10 @@ def build(form):
                 entry["options"] = opts
             if n.get("defaultValue") not in (None, "", []):
                 entry["hasDefault"] = True
+                dv = n["defaultValue"]
+                dv = dv if isinstance(dv, str) else json.dumps(dv, ensure_ascii=False)
+                dv = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", dv)).strip()
+                entry["default"] = dv[:200] + ("..." if len(dv) > 200 else "")
             for k in ("suffix", "systemPath", "explan", "placeholder", "class", "limit"):
                 if n.get(k) not in (None, ""):
                     entry[k] = n[k]
@@ -77,6 +81,13 @@ def build(form):
     for path, e in nodes.items():
         if e["kind"] == "group":
             e["children"] = [p for p in order if nodes[p]["parent"] == path]
+    for sec_key in section_keys(schema):                 # the card (row title) each top-level field sits in
+        for row in schema[sec_key]:
+            if isinstance(row, dict) and not row.get("repeatable") and (row.get("title") or row.get("subHeader")):
+                for n in row.get("fields") or []:
+                    k = key_of(n) if isinstance(n, dict) else None
+                    if k in nodes:
+                        nodes[k]["card"] = row.get("title") or row.get("subHeader")
     # projectFieldsMap entries pointing into groups ("addressDetails[0].apartmentNumber")
     for target, cols in links.items():
         base = target.replace("[0]", "")
@@ -95,7 +106,10 @@ def build(form):
                 rows[sec_key].append({"card": None, "top": [k] if k in nodes else []})
             else:
                 keys = [n.get("groupName") if n.get("repeatable") else n.get("name") for n in row.get("fields") or [] if isinstance(n, dict)]
+                note = row.get("subTitle") or (row.get("subHeader") if row.get("title") else None)
                 rows[sec_key].append({"card": row.get("title") or row.get("subHeader"), "if": row.get("if"),
+                                      "note": re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", str(note))).strip()[:200]
+                                      if note else None,
                                       "top": [k for k in keys if k in nodes]})
     return {
         "form": {k: form.get(k) for k in ("id", "name", "title", "description", "isSystem", "isDefault",
@@ -193,6 +207,8 @@ def line_for(e, indent=""):
         flags.append("AI")
     if e.get("hasDefault"):
         flags.append("default text")
+    if e.get("card"):
+        flags.append("card: " + e["card"])
     if e["kind"] == "group" and e["depth"] >= 3:
         flags.append(f"depth {e['depth']}")
     if flags:
@@ -200,6 +216,8 @@ def line_for(e, indent=""):
     if e.get("options"):
         o = e["options"]
         bits.append("options: " + " / ".join(o[:8]) + (f" ... (+{len(o) - 8})" if len(o) > 8 else ""))
+    if e.get("default"):
+        bits.append(f'default: "{e["default"]}"')
     return " ".join(bits)
 
 
@@ -228,7 +246,8 @@ def render_md(idx):
             for row in idx["rows"].get(sec_key, []):
                 if row.get("card"):
                     cond = f" [row if {short_if(row['if'])}]" if row.get("if") is not None else ""
-                    out.append(f"- **card \"{row['card']}\"**{cond}")
+                    out.append(f"- **card \"{row['card']}\"**{cond}" + (f" - guidance: \"{row['note']}\" (update_row)"
+                                                                         if row.get("note") else ""))
                 for p in row["top"]:
                     out.extend(_render_tree(idx, p, "  " if row.get("card") else ""))
         out.append("")
@@ -253,10 +272,23 @@ def _render_tree(idx, path, indent):
     return lines
 
 
+def _word_hits(query, text):
+    """Share of the query's words found in text - with or without a prefix, ה/ת endings folded."""
+    from formlogic import _topic_match
+    q = [w for w in norm(query).split() if len(w) >= 3]
+    t = norm(text).split()
+    if not q or not t:
+        return 0.0
+    return sum(1 for w in q if any(_topic_match(w, x) for x in t)) / len(q)
+
+
 def find(idx, text, limit=15):
+    """Fields whose label, name, card title, placeholder or help text looks like the text."""
     scored = []
     for p, e in idx["nodes"].items():
         s = max(similarity(text, e["label"]), similarity(text, camel_words(e["key"])), 1.0 if text == e["key"] else 0)
+        extra = " ".join(str(e.get(k) or "") for k in ("label", "card", "placeholder", "explan"))
+        s = max(s, 0.6 * _word_hits(text, extra))
         if s >= 0.34:
             scored.append((s, p))
     scored.sort(key=lambda x: (-x[0], idx["order"].index(x[1])))
@@ -297,7 +329,7 @@ def main():
         for sc, e in hits:
             print(f"{sc:.2f}  {line_for(e)}   <{e['section']}>")
         if not hits:
-            print(f"no field looks like \"{text}\" (searched labels and names)")
+            print(f"no field looks like \"{text}\" (searched labels, names, card titles, placeholders, help text)")
         return
     if "--check-tags" in args:
         check_tags(idx, args[args.index("--check-tags") + 1])

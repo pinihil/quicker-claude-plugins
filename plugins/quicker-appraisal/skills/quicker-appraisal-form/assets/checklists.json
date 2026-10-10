@@ -1,6 +1,6 @@
 {
  "version": "2026-10",
- "about": "Data items an appraisal form should capture, per appraisal type. level: required = the law or a standard requires it in the report; conditional = required when the case applies; recommended = standard practice / a standard's recommendation / the bank's or authority's practice. basis cites the source (see references/standards.md). match = words that show the form already holds the item (compared with field labels and names; \"abc*\" = a word starting with abc; words of 4 letters or fewer must be whole words). partial = words that show something close but not the same (a free-text box instead of a table, a plan instead of a sketch) - reported as ~. suggest = a field to propose when missing (name, type, section hint). Section hints: general, visit, building, property, planning, legal, valuation, declarations. parts (optional) = {part name: patterns} for a multi-part item - each part must appear in the found field or its children, or the item is only partly there.",
+ "about": "Data items an appraisal form should capture, per appraisal type. level: required = the law or a standard requires it in the report; conditional = required when the case applies; recommended = standard practice / a standard's recommendation / the bank's or authority's practice. basis cites the source (see references/standards.md). match = words that show the form already holds the item (compared with field labels and names; \"abc*\" = a word starting with abc; words of 4 letters or fewer must be whole words). partial = words that show something close but not the same (a free-text box instead of a table, a plan instead of a sketch) - reported as ~. suggest = a field to propose when missing (name, type, section hint). Section hints: general, visit, building, property, planning, legal, valuation, declarations. parts (optional) = {part name: patterns} for a multi-part item - each part must appear in the found field or its children, or the item is only partly there. suggest.opensOn + suggest.details (optional) = a question and the detail fields it opens on that answer (form-design.md §8).",
  "types": {
   "base": {
    "title": "כל שומה (תקנות האתיקה + תקן 1.1 + תקני הסעיפים)",
@@ -659,9 +659,22 @@
       "תחבורה"
      ],
      "suggest": {
-      "name": "transitDistance",
-      "type": "text",
-      "section": "building"
+      "name": "transitNearby",
+      "type": "radio",
+      "section": "building",
+      "values": [
+       "קיים",
+       "לא קיים",
+       "לא נבדק"
+      ],
+      "opensOn": "קיים",
+      "details": [
+       {
+        "name": "transitDistance",
+        "type": "text",
+        "label": "מרחק הליכה ושלב (מתוכנן / בביצוע / פעיל)"
+       }
+      ]
      }
     },
     {
@@ -775,8 +788,26 @@
      ],
      "suggest": {
       "name": "buildingDeviations",
-      "type": "textarea",
-      "section": "planning"
+      "type": "radio",
+      "section": "planning",
+      "values": [
+       "קיימות חריגות",
+       "לא נמצאו חריגות",
+       "לא נבדק"
+      ],
+      "opensOn": "קיימות חריגות",
+      "details": [
+       {
+        "name": "buildingDeviationsDetails",
+        "type": "richtext",
+        "label": "פירוט החריגות והשפעתן על השווי"
+       },
+       {
+        "name": "buildingDeviationsPhotos",
+        "type": "image",
+        "label": "צילומי החריגות"
+       }
+      ]
      }
     },
     {
@@ -1222,6 +1253,70 @@
       "name": "contingentFee",
       "type": "checkbox",
       "section": "declarations"
+     }
+    },
+    {
+     "id": "antiquities",
+     "label": "אתר עתיקות מוכרז (רשות העתיקות)",
+     "level": "recommended",
+     "basis": [
+      "נוהג מקצועי - בעיקר קרקע, בנייה וצמודי קרקע; בנייה עצמית: אישור רשות העתיקות לפי נהלי בנקים"
+     ],
+     "match": [
+      "עתיקות"
+     ],
+     "suggest": {
+      "name": "antiquitiesSite",
+      "type": "radio",
+      "section": "planning",
+      "values": [
+       "הנכס בתחום אתר עתיקות",
+       "הנכס אינו בתחום אתר עתיקות",
+       "לא נבדק"
+      ],
+      "opensOn": "הנכס בתחום אתר עתיקות",
+      "details": [
+       {
+        "name": "antiquitiesMap",
+        "type": "image",
+        "label": "מפת רשות העתיקות (צילום)"
+       },
+       {
+        "name": "antiquitiesDetails",
+        "type": "richtext",
+        "label": "פירוט ההכרזה והשפעתה"
+       }
+      ]
+     }
+    },
+    {
+     "id": "dangerousBuilding",
+     "label": "מבנה מסוכן (צו / הודעת הרשות)",
+     "level": "recommended",
+     "basis": [
+      "נוהג מקצועי - בעיקר מבנים ישנים ונכסים לבנקים"
+     ],
+     "match": [
+      "מבנה מסוכן",
+      "מסוכן"
+     ],
+     "suggest": {
+      "name": "dangerousBuilding",
+      "type": "radio",
+      "section": "building",
+      "values": [
+       "הוכרז מבנה מסוכן",
+       "אין צו מבנה מסוכן",
+       "לא נבדק"
+      ],
+      "opensOn": "הוכרז מבנה מסוכן",
+      "details": [
+       {
+        "name": "dangerousBuildingDetails",
+        "type": "richtext",
+        "label": "פירוט הצו, תאריך ומשמעות"
+       }
+      ]
      }
     }
    ]
@@ -1774,8 +1869,21 @@
      ],
      "suggest": {
       "name": "soilContamination",
-      "type": "textarea",
-      "section": "planning"
+      "type": "radio",
+      "section": "planning",
+      "values": [
+       "קיים חשש",
+       "לא נמצא חשש",
+       "לא נבדק"
+      ],
+      "opensOn": "קיים חשש",
+      "details": [
+       {
+        "name": "soilContaminationDetails",
+        "type": "richtext",
+        "label": "מקור החשש ופירוט"
+       }
+      ]
      }
     },
     {
@@ -1911,8 +2019,21 @@
      ],
      "suggest": {
       "name": "unrealisedExpropriations",
-      "type": "textarea",
-      "section": "legal"
+      "type": "radio",
+      "section": "legal",
+      "values": [
+       "קיימות",
+       "אין",
+       "לא נבדק"
+      ],
+      "opensOn": "קיימות",
+      "details": [
+       {
+        "name": "unrealisedExpropriationsDetails",
+        "type": "richtext",
+        "label": "פירוט ההפקעות וההערות לפי סעיף 126"
+       }
+      ]
      }
     },
     {

@@ -12,7 +12,7 @@ checks them locally first.
 5. Where it goes - tabs, sections, order, width
 6. Options
 7. Repeating data - groups
-8. Display conditions
+8. Questions and their details (display conditions)
 9. AI Fill prompts
 10. Links to the project card (systemPath)
 11. Changing what exists without breaking data or templates
@@ -41,12 +41,12 @@ desk. A form with 40 needless fields is filled badly. Before proposing a field, 
 | the data point in the report is... | it belongs in |
 |---|---|
 | different in every report (a value, a choice, a date, a list) | **a form field** |
-| the same in every report (legal wording, standard declarations, the office's methodology text) | fixed text in the Word template |
+| the same in every report (legal wording, standard declarations, the office's methodology text) | fixed text in the Word template - or a field with a `defaultValue` when appraisers adjust it per report (bank notes, limiting conditions): the default fills empty fields and the Word export |
 | the appraiser's own details (name, licence number, signature, phone) | the user / office settings and the template's system variables (`p.agentName`, `appraisalSignatureImage`...), not the form |
 | already a project or customer column (address, gush/helka, dates, customer name and ID, appraisal type, referrer) | **use the existing column** - `p.*` / `c.*` - or a field bound to it (§10); never a second copy |
 | computed from other values (VAT, totals, percentages of a value) | the template (`| currency`, expressions) or a `readNumber` field - agents cannot create `read`/`readNumber`/`html` fields; suggest the form builder for those |
 | a document (extract, permit, contract) | Quicker's project files; at most an `image` field when the report embeds a picture of it |
-| a long narrative the appraiser writes per report (environment, principles, notes) | a `textarea` (or `richtext` if the report needs bold/lists inside it) |
+| a long narrative the appraiser writes per report (environment, planning status, principles, reservations) | `richtext` - paragraphs, bold and lists, the way the report shows them (§3) |
 
 Two more tests from appraisal practice:
 - **Who knows the value and when?** Visit facts (condition, finish, who presented the property) are
@@ -64,8 +64,8 @@ Agents may create: `text`, `textarea`, `richtext`, `number`, `currency`, `date`,
 | type | use for | notes |
 |---|---|---|
 | `text` | short free text: names, file numbers, plan numbers, ID numbers | IDs/file numbers are text, not number (leading zeros, dashes) |
-| `textarea` | narrative paragraphs | line breaks print as line breaks |
-| `richtext` | narrative that needs formatting (bold, bullets) inside | template must print it with `| html` alone in its paragraph - only when needed |
+| `textarea` | a few plain lines (a remark, an address note, a short explanation) | line breaks print as line breaks; no formatting |
+| `richtext` | **detailed text** - descriptions, analysis, planning / legal status, reservations, explanations, anything the report shows as paragraphs or lists | the editor keeps paragraphs, bold and lists; the Word template prints it with `{p.ad.x \| html}` alone in its paragraph. AI Fill: see below |
 | `number` | counts and years: rooms, floors, units, year built | the input is a whole non-negative number (`min=0`) - not for amounts, areas, percentages, adjustments |
 | `currency` | money (shows ₪, thousands separators) **and areas with `suffix: "מ\"ר"`** | `suffix` replaces the ₪ (≤20 chars); an area without suffix shows ₪ - the system form's areas carry `מ״ר` |
 | `date` | dates (visit, valuation date, permit date, extract date) | stored as an ISO date; templates format with `| date:'DD/MM/YYYY'` |
@@ -77,6 +77,16 @@ Agents may create: `text`, `textarea`, `richtext`, `number`, `currency`, `date`,
 | `image` | photos, plans, maps, scanned excerpts the report shows | `limit` 1-30; full width |
 | `textPom` | a value typed with quick % / מ"ר buttons | for percentages and adjustments ("-10%") and mixed area text |
 | `textSod` | a value typed with quick "source of data" buttons | for "מקור הנתון" next to a key fact (area source, rights source) - the standards now ask for sources (6.1, 7.1, 9.1) |
+
+**Rich text in practice.**
+- AI Fill, agents and the API write plain text; Quicker turns it into rich-text paragraphs (a blank line
+  starts a paragraph, a line break stays a line break) **(server)**. So the prompt asks for paragraphs -
+  "פסקה לכל נושא, שורה ריקה בין פסקאות" - not for HTML.
+- Changing an existing `textarea` to `richtext` is allowed **(server)**, with a cost: every Word
+  template that prints it must change to `| html` (without it the markup prints as text - the plan's
+  impact lists those templates for a type change), and old values' line breaks merge at the next edit.
+  Convert only when the user wants formatting in that field, and fix the templates (template skill) in
+  the same session. New detailed-text fields start as `richtext`.
 
 ## 4. Names, labels, help text
 
@@ -97,7 +107,10 @@ Agents may create: `text`, `textarea`, `richtext`, `number`, `currency`, `date`,
   value - that is what appraisers recognise and what the template mapping looks for. Drop trailing
   colons. Add the unit only if the field has no suffix ("שטח (מ"ר)").
 - **explan** (≤500): the tooltip "?" - when to fill, which document, a rule ("לפי תקן 9.1 - בלי
-  מרפסות"). Use it for anything an intern would ask.
+  מרפסות"). Use it for anything an intern would ask. A field that exists because a standard or the
+  regulations require it says so, with the clause: "נדרש לפי תקן 19 §4.15(ב) - מס שבח במימוש, בלי
+  פטורים אישיים". The appraiser learns the rule where it applies, and a reviewer sees why the field is
+  there. Cite only clauses you verified in `standards.md` / `checklists.json`.
 - **placeholder** (≤120): a format example ("לדוגמה: 12/2024").
 - **required**: only for what a report can't go out without; required fields block nothing in Quicker
   but mark the form - overuse makes them noise.
@@ -117,6 +130,12 @@ Agents may create: `text`, `textarea`, `richtext`, `number`, `currency`, `date`,
   - **including a card's title and condition** (`check_ops.py` warns, and its preview names the card);
   a group always gets its own row. There is no "before" / "first": the first place you can reach is
   after the section's first field.
+- **Cards**: a card is a plain row with a heading. `update_row {field, set: {title, subHeader, explan,
+  if, aiConfig, icon}}` changes the card that holds `field` **(server)** - its condition hides every
+  field in it. To make a **new card**, add its first field where it starts a row of its own (without
+  `after` at the end of a section whose last row is a card or a group, or `after` a group), give that
+  row a title (and a condition) with `update_row` on the field, then add the other fields `after` it -
+  they join the card. Sections take `update_section {key, set: {title, icon, aiConfig}}`.
 - **Width**: leave `class` out - the engine copies the neighbour's width (`col-md-4 col-sm-6
   col-xs-12` by default); `textarea`/`richtext`/`image` go full width (`col-md-12 col-xs-12`).
 - `move_field` moves a top-level field or group to another section (data untouched). Fields inside a
@@ -149,25 +168,109 @@ Agents may create: `text`, `textarea`, `richtext`, `number`, `currency`, `date`,
 - To add a column to an existing group: `add_field` with `group: "<group path>"` - never a parallel
   group.
 - **Depth**: groups may nest (a lessee's rights inside a lease inside the extract), up to 3 levels from
-  a section **(server)**. But fields three levels down are missing from `get_word_template_variables`
-  (known gap, October 2026) - they can't be mapped into Word templates. Prefer depth ≤ 2: flatten
-  (`ownerName`, `ownerShare` as columns of one group) rather than nesting a third level.
+  a section **(server)**. All levels reach Word templates as nested loops. Still prefer the shallowest
+  shape that fits: every level is another "add row" click for the appraiser and another loop in the
+  template, so a list of owners with a share column is one group, not owners -> shares.
 - A single value that happens to live in a group (the first owner) is `p.ad.group[0].field` in
   templates - no need for a duplicate top-level field.
 
-## 8. Display conditions (`if`)
+## 8. Questions and their details (`if`)
 
-Show a field only when it applies: lease fields when `typeZchut` includes "חכירה", construction fields
-when the property is under construction, bank-specific fields by `referrer`. The form gets shorter and
-AI Fill skips what's irrelevant.
+Much of an appraisal form is **a question and the details it opens**: "אתר עתיקות" opens the map and
+the declaration only when the property is in a site; "חוזה שכירות: קיים" opens the lease table;
+"מבנה מסוכן: הוכרז" opens the order's details. A form that shows the details for every answer looks
+careless (a map upload under "לא נבדק"), invites wrong data, and prints leftovers. The rules:
+
+1. **Details open only on the answers they describe.** A finding's details (פירוט, מפה / צילום,
+   תאריך, מסמך, סכום, השפעה על השווי) open on the answer that reports the finding. Nothing opens on
+   "לא נבדק", "לא ידוע", "אין", "לא קיים". Give each detail its own `if` with the same expression - or,
+   for a block of details, put them in one card and give the card the condition (`update_row`, §5); a
+   group takes it once, on the group. Two refinements:
+   - a detail **about the check itself** (תאריך הבדיקה, מקור המידע) opens on every *checked* answer -
+     "כן" and "לא" alike - and only "לא נבדק" closes it;
+   - a qualified "no" is a finding ("הנכס אינו מוגדר כמבנה מסוכן, אך מבנה סמוך במתחם מוגדר") - its
+     details open on it too.
+   A "סוג ..." / "מהות ..." question picks a kind; the record's other fields (the loan's file number
+   under "סוג ההלוואה") are not its details - only fields that exist for one kind are ("פרטי ההיוון"
+   under "סוג החכירה = מהוונת").
+2. **Match the answers that open, not the ones that close.** `== 'הוכרז מבנה מסוכן'` or
+   `['א', 'ב'].includes(...)` - not `!= 'אין צו'`. A negated condition shows the details before anyone
+   answered, and opens them for every answer added later (add "לא נבדק" next year and the details open
+   on it).
+3. **Copy the option text exactly.** A condition compares strings; `'קיים'` never matches the option
+   `'קיים חשש'`. The plan now rejects such a condition **(server)** ("... שאינו אחת מהאפשרויות שלו"),
+   and a checkbox compared with `'כן'` instead of `true` - `check_ops.py` catches both first; conditions
+   already in the form are not re-checked (`audit_form.py` finds those). When you add, fix or rename an option, re-check the
+   conditions that name it (`form_index.md` "Conditions that name option values").
+4. **A detail of a detail carries the whole chain.** A hidden field keeps its value. If "פירוט ההשפעה"
+   opens on "השפעה על השווי = יש", and that question opens only on "זיהום = קיים חשש", the detail's
+   condition is `contamination == 'קיים חשש' && contaminationImpact == 'יש'` - otherwise changing the
+   first answer leaves the detail open with stale text.
+5. **Every check from an outside source has a "לא נבדק" answer** (registry, municipality, Israel
+   Antiquities Authority, GovMap, the planning file). Without it an appraiser who didn't check must
+   pick "no", and the report states a fact nobody verified. In the Word template "לא נבדק" prints the
+   office's assumption sentence ("לא נערכה בדיקה ...; השומה מניחה כי ...").
+6. **A question's AI Fill prompt says silence is not "no"**: "בחר רק לפי מסמך או בדיקה שקובעים זאת;
+   אם אין - השאר ריק". AI Fill sees each detail's condition and fills the question and its details
+   together, so a wrong answer drags wrong details with it.
+7. **Evidence goes with its finding.** A map or screenshot that documents the finding opens with that
+   answer only - the antiquities map on "הנכס בתחום אתר עתיקות", not on "אינו בתחום" and never on
+   "לא נבדק". Open it on both checked answers (`['בתחום', 'אינו בתחום'].includes(...)`) only when the
+   office's own report attaches the map to prove a negative too - and say so to the user. "We write
+   it in every report" means the *question* is in every report, not its evidence. Context images every
+   report carries (the location map) need no question.
+8. **Details sit right after their question** - not before it (a "פירוט" above its question reads as
+   always relevant), in the report's order (`after` the question, then each
+   detail after the previous one). Don't anchor on a field with an empty label (the plan summary would
+   show its internal name) - give it a label first (`update_field` `set.label`) when the right place is
+   next to it.
+9. **An existing free-text field that becomes a question's detail** ("חריגות בנייה" text box under a
+   new question "חריגות בנייה: קיימות / לא נמצאו / לא נבדק"): old projects have text but no answer, so
+   a plain `== 'קיימות'` hides their text. Use a transition condition -
+   `project.additionalDetails.q == 'קיימות' || (!project.additionalDetails.q && project.additionalDetails.detail)`
+   - the text stays visible until someone answers. (`!q` here tests "not answered yet"; rule 2 is about
+   not opening details on a *negated answer*.) Adding a condition to an existing field also changes
+   what Word templates should print: the plan lists the templates that print it
+   (`wordTemplatesStillPrinting`) - wrap those lines in the same condition (template skill).
+10. **No default answer on a question.** A default records an answer nobody gave - "אין" or "לא קיים"
+   by default is a false statement in every report nobody checked, and even "לא נבדק" by default hides
+   that nobody looked. Defaults are for boilerplate text (notes, declarations, limiting conditions) and
+   for values that really are the same for the office.
+11. **A question above an existing field**: there is no "before" - add the question after the field
+   that precedes it, or add it after the field and `move_field` the field (same section) `after` the
+   question.
+12. **Check what each answer shows.** `check_ops.py` prints the display logic of the fields the plan
+   touches, and its preview has a "מפת התנאים": per question, what each answer shows, and what shows
+   for every answer though it looks like a detail. Read it before showing the plan. For a form that
+   already exists, `audit_form.py` does the same for the whole form (and writes ready
+   `update_field` ops for the fixes).
+
+Common questions in Israeli appraisal reports - shape them like this:
+
+| question | answers | opens (on) |
+|---|---|---|
+| אתר עתיקות | הנכס בתחום אתר עתיקות / הנכס אינו בתחום אתר עתיקות / לא נבדק | מפת רשות העתיקות, פירוט ההכרזה, השפעה (בתחום) |
+| מבנה מסוכן | הוכרז מבנה מסוכן / אין צו / לא נבדק | פירוט הצו, תאריך, מסמך (הוכרז) |
+| חריגות בנייה ושימוש בניגוד להיתר | קיימות חריגות / לא נמצאו חריגות / לא נבדק | פירוט החריגות והשפעתן (richtext), צילומים (קיימות) |
+| זיהום קרקע | קיים חשש / לא נמצא חשש / לא נבדק | מקור החשש ופירוט, השפעה (קיים חשש) |
+| הפקעות / הערות לפי סעיף 126 | קיימות / אין / לא נבדק | שטח מופקע, תכנית, סטטוס מימוש (קיימות) |
+| מתע"ן / תשתית תחבורה בקרבת הנכס | קיים / לא קיים / לא נבדק | מרחק הליכה, שלב (מתוכנן / בביצוע / פעיל) (קיים) |
+| אנטנה סלולרית / קו מתח גבוה בקרבה | קיים בקרבת הנכס / לא קיים / לא נבדק | מרחק, צילום (קיים) |
+| התחדשות עירונית (תמ"א 38 / פינוי בינוי) | קיים הליך / אין / לא נבדק | שלב, יזם, תמורות (קיים הליך) |
+| חוזה שכירות | קיים / לא קיים | טבלת השכירות - group (קיים) |
+| הערות אזהרה / שעבודים / עיקולים בנסח | רשומים / אין | טבלת הרישומים - group (רשומים) |
+| סוג הזכות (checkboxList) | בעלות / חכירה / חכירה מהוונת ... | פרטי החכירה (`.includes('חכירה')`) |
+| בית משותף | רשום / לא רשום | תת-חלקה, הצמדות, תשריט (רשום) |
+| היטל השבחה | חל / לא חל / לא נבדק | תכנית משביחה, אומדן (חל) |
 
 Syntax **(server)** - an expression over the form's own fields:
 ```
-project.additionalDetails.propertyConditionStatus === 'בבנייה'
-project.additionalDetails.typeZchut && project.additionalDetails.typeZchut.includes('חכירה')
-project.additionalDetails.referrer === 'בנק לאומי' || project.additionalDetails.referrer === 'בנק מזרחי טפחות'
-!project.additionalDetails.ifLease
-project.additionalDetails.borrowers[x].borrowerType === 'חברה'        (inside a group row: x, y, z = row indexes)
+project.additionalDetails.dangerousBuilding == 'הוכרז מבנה מסוכן'
+['הנכס בתחום אתר עתיקות', 'הנכס אינו בתחום אתר עתיקות'].includes(project.additionalDetails.antiquitiesSite)
+project.additionalDetails.typeZchut.includes('חכירה')                      (checkboxList)
+project.additionalDetails.reducedPriceProgram === true                     (checkbox)
+project.additionalDetails.contamination == 'קיים חשש' && project.additionalDetails.contaminationImpact == 'יש'
+project.additionalDetails.borrowers[x].borrowerType === 'חברה'             (inside a group row: x, y, z)
 ```
 or structured: `{"logic": "and", "conditions": [{"field": "extanded", "operator": "equals", "value": "שומה מורחבת"}]}`
 (operators: equals, notEquals, greaterThan, lessThan, greaterOrEqual, lessOrEqual, contains,
@@ -175,11 +278,11 @@ notContains, isEmpty, isNotEmpty, isTrue, isFalse).
 Allowed: reads of the form's fields, literals, comparisons, `&& || !`, `?:`, `.includes()` /
 `.indexOf()`, `.length`. Refused: any other call, assignment, `constructor`/`__proto__`..., any root
 other than `project.additionalDetails`, fields the form doesn't have (a field added earlier in the same
-plan counts).
+plan counts). A member of an empty field is empty, not an error, so `x.includes('a')` is safe.
 
-Keep conditions consistent with the office's templates: if the Word template prints a paragraph only
-for "שומה מורחבת", the fields that feed it should have the same condition. Don't hide a field that a
-template prints unconditionally.
+Keep conditions consistent with the office's templates: the Word template wraps what it prints from a
+detail in the same condition as the form (hidden fields keep their values). Don't hide a field that a
+template prints unconditionally - tell the user which template to change.
 
 ## 9. AI Fill prompts (`aiConfig.prompt`)
 
@@ -223,13 +326,14 @@ to that column (`form_index.md` shows `-> p.x`).
 | retire a field | `hide_field` (data kept, AI Fill skips it, `show_field` reverses) | `remove_field` - refused if any project holds data, a Word template reads it, a condition reads it, it's linked to a project column or a computed field uses it **(server)** |
 | tidy option text | add the corrected option; leave the old (projects hold it) | rename an option in place |
 | another section | `move_field` (top-level only) | remove + add (loses the data link) |
+| pre-filled text | `update_field` `set.defaultValue` - fills empty fields only (new projects, unfilled ones, the Word export); the plan says how many projects keep their own text | expecting saved projects to change |
+| a card's heading, guidance, condition, AI prompt | `update_row` on a field of the card | a form-builder task (no longer needed) |
+| a section's title, icon, AI prompt | `update_section` | |
 
-A hidden field still prints in old templates for old projects and prints empty for new ones. The plan's
-impact lists data and Word templates **only for `remove_field` and type changes** - not for hide,
-label, condition or option changes (an empty `byPath` there means "not checked"). To learn which
-templates read a field, plan a `remove_field` on it as a check: nothing changes, the reply lists
-`templateRefs` (even when the removal itself is refused), and you never apply that plan - tell the user
-it was only a check.
+A hidden field still prints in old templates for old projects and prints empty for new ones; the same
+holds for a field behind a new condition. The plan lists those templates
+(`impact.wordTemplatesStillPrinting`, also in `summaryHe`) - wrap the lines there in the same condition,
+or keep the field.
 
 ## 12. Limits (server)
 
@@ -252,9 +356,8 @@ and the create fails on the clash rule (one office form per appraisal type). If 
 lists the new type, create with `[]`, remove the type from the source (`set_form_props`), then give it
 to the copy - two plans, both shown to the user.
 
-A separate form is also the only way to give the new type **its own default texts** (bank notes,
-declarations, limiting conditions - ops can't change a default, and one form shares them across all its
-report types). When those texts contradict the new type, that is often the deciding reason.
+Default texts (bank notes, declarations, limiting conditions) are shared by every report type on one
+form. A separate form gives the new type its own; on one form, see item 6.
 
 When `create_custom_form_template` is off (absent from the tools) and the user named the current form:
 plan on the current form with the switch below, and offer the separate form as a recommendation -
@@ -272,26 +375,39 @@ solves.
    `project.additionalDetails.reportKind == 'שומה מורחבת'`, or for a checkbox
    `project.additionalDetails.collateral19`. Fields inside a group need no condition of their own when
    the group has one.
-3. **Placement.** Sections can't carry a condition (`add_section` has no `if`), and a card's (row's)
-   condition can't be set by ops. So:
+3. **Scope when there is no report of the type yet** (built from the standard alone): the standard's
+   required items plus the "when relevant" items that fit the property the office will typically value
+   (offices, retail and rented assets for business credit: lease, tenants, occupancy, income) - all
+   behind the switch. The rest go to the findings.
+4. **Placement.** Sections can't carry a condition (`add_section` has no `if`); cards can
+   (`update_row`). So:
    - a new section for the type shows its title on every project, even when all its fields are hidden.
      Use one only when the type is a real chapter of the report (and say so to the user); otherwise put
      the fields next to their siblings in the existing sections (the bank's loan number beside the
      other bank details, the forced-sale discount beside the value).
+   - a block of fields that only the new type has can be **a card with the switch as its condition**
+     (`update_row`, §5) - one condition instead of one per field.
    - **a field placed `after` a field that sits in a conditional card joins that card and inherits its
      condition** - the engine does it silently and the plan summary doesn't mention it. Use it on
      purpose when the form already has a card for the type; avoid it otherwise (`check_ops.py` warns).
-   - a new card with a title and a condition is a form-builder job - list it for the user.
-4. **Sections the new type needs that another switch hides.** `form_index.md` "Conditions that name
-   option values" shows them (a planning card shown only for "שומה מורחבת"). Card conditions can't be
-   changed by ops, so: say it in the switch's `explan` ("בשומה לפי תקן 19 בוחרים גם 'שומה מורחבת'"),
-   raise it as a finding, and list the card for the form builder if the office wants the switch to open
-   it too.
-5. **Existing fields that conflict.** Read the `[default text]` fields in the index (notes,
+   - an existing card the type needs that another switch hides: `update_row` can widen its condition
+     (`reportKind == 'שומה מורחבת' || collateral19 === true`) - with the user's agreement, since it
+     changes what the other reports show.
+5. **Sections the new type needs that another switch hides.** `form_index.md` "Conditions that name
+   option values" shows them (a planning card shown only for "שומה מורחבת"). Either widen the card's
+   condition with `update_row` (item 4 - it changes what other reports show, so ask), or say it in the
+   switch's `explan` ("בשומה לפי תקן 19 בוחרים גם 'שומה מורחבת'"). Update that other switch's AI Fill
+   prompt in the same plan ("בשומה לפי תקן 19 - תמיד 'שומה מורחבת'"), or AI Fill may pick the answer
+   that hides the section.
+6. **Existing fields that conflict.** Read the `default:` texts in the index (notes,
    declarations, limiting conditions): their pre-filled text may contradict the new type (a mortgage
-   declaration on a court opinion). Ops can't change a default - list the change for the form builder.
+   declaration on a court opinion). Either rewrite the default so it fits every type (`update_field`
+   `set.defaultValue` - saved projects keep their text), or keep the old field for the other types
+   (`if`: the switch is off) and add a twin with the type's text as its default (`if`: the switch is
+   on) - a default only fills a field whose conditions hold, so each report gets its own text. The
+   Word template then prints the twin under the same condition.
    Never put a condition on an existing field the other report types need.
-6. **Tell the user** which projects will see what: "בפרויקט שבו סוג הדוח הוא X יופיעו N שדות חדשים;
+7. **Tell the user** which projects will see what: "בפרויקט שבו סוג הדוח הוא X יופיעו N שדות חדשים;
    בשאר הפרויקטים הטופס לא משתנה" - and that the Word template for the new type needs its own
    sections (the template skill can wrap them in the same condition).
 

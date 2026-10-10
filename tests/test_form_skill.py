@@ -9,6 +9,10 @@ Regression test for the quicker-appraisal-form scripts on a fictional office for
   statuses were checked against the Quicker engine), the payload drops "why", a system form is refused
 - checklists.json: every item is well-formed and its suggested name passes the server's name rule
 - report_inventory + gap_check: run on the fixture report and produce findings
+- display logic (formlogic / audit_form): the condition evaluator agrees with the browser's rules, a detail
+  shown for every answer of its question is found with a ready condition, a negated condition and an
+  option that doesn't exist are found, the suggested fixes pass check_ops, and check_ops flags the
+  same mistakes in new ops
 """
 import json
 import os
@@ -20,6 +24,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 S = os.path.join(ROOT, "plugins", "quicker-appraisal", "skills", "quicker-appraisal-form", "scripts")
 FIX = os.path.join(ROOT, "tests", "fixtures")
 NAME_RE = re.compile(r"^[a-z][a-zA-Z0-9]*$")
+sys.path.insert(0, S)
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+sys.dont_write_bytecode = True
+from formlogic import UNKNOWN, UDict, classify, condition_value  # noqa: E402
 TYPES = {"text", "textarea", "richtext", "number", "currency", "date", "select", "selectOther", "radio",
          "checkbox", "checkboxList", "image", "textPom", "textSod", "group"}
 
@@ -48,7 +56,7 @@ def main():
     assert n["determinesDate"].get("linkedTo") == ["determinesDate"]
     assert n["leaseEnd"].get("if")
     assert n["extendedNotes"].get("rowIf"), "a field in a conditional card carries the card's condition"
-    assert len(idx["topLevelNames"]) == 16, idx["topLevelNames"]
+    assert len(idx["topLevelNames"]) == 20, idx["topLevelNames"]
     out = run(os.path.join(S, "form_index.py"), form, "--find", "ריצוף מטבח")
     assert "livingRoomFloorType" in out, out
 
@@ -66,8 +74,18 @@ def main():
             assert have in ("OK", "WARN"), f"op #{i}: expected accepted, got {have}\n{out}"
         else:
             assert have == want, f"op #{i}: expected {want}, got {have}\n{out}"
-    assert "ownerReps" in out and "get_word_template_variables" in out, "depth-3 group warns about the variables tool"
+    assert "get_word_template_variables" not in out, "depth-3 groups reach the variables tool since October 2026 - no warning"
     assert "השדה ייכנס לכרטיס" in out, "placing after a field of a conditional card warns (the engine joins the card)"
+    logic = out[out.index("Display logic"):] if "Display logic" in out else ""
+    assert "FIX  antiquitiesDeclaration" in logic and "antiquitiesSite == 'הנכס בתחום אתר עתיקות'" in logic, \
+        "a new detail without the question's condition is a FIX with a ready condition\n" + out
+    assert re.search(r"ERR  #\d+ add_field antiquitiesImpact", out) and "שאינו אחת מהאפשרויות שלו" in out, \
+        "a condition on a value that isn't an option is refused, as the server does"
+    import check_ops  # noqa: E402
+    tips = []
+    check_ops.advise({"name": "x", "type": "textarea", "label": "השפעת אתר העתיקות על השווי",
+                      "aiConfig": {"prompt": "x"}}, tips.append, [], "x")
+    assert any("עדיף richtext" in t for t in tips), "detailed text in a textarea is advised to be richtext"
     preview = open(os.path.join(work, "preview.md"), encoding="utf-8").read()
     assert "טבלת הגמר בדוח" in preview, "the op's why reaches the review table"
 
@@ -78,6 +96,12 @@ def main():
     sent = json.load(open(payload, encoding="utf-8"))
     assert all("why" not in op for op in sent["ops"]), "why is stripped (the server rejects unknown keys)"
     assert sent["templateId"] == spec["templateId"]
+
+    rep = os.path.join(work, "out", "changes.md")
+    run(os.path.join(S, "change_report.py"), form, gpath, "--out", rep)
+    text = open(rep, encoding="utf-8").read()
+    assert "מתוכנן - טרם בוצע" in text and "שם פנימי: `kitchenFloorType`" in text, "the manual-entry spec"
+    assert "מה כל תשובה מציגה" in text, "the spec shows what each answer of a touched question opens"
 
     sysform = json.load(open(form, encoding="utf-8"))
     sysform["isSystem"] = True
@@ -101,6 +125,60 @@ def main():
             assert sug.get("type") in TYPES, f"{t}.{it['id']}: bad type {sug.get('type')}"
             if sug.get("type") in ("select", "radio", "checkboxList"):
                 assert sug.get("values"), f"{t}.{it['id']}: a choice suggestion needs values"
+            for det in sug.get("details") or []:
+                assert NAME_RE.match(det["name"]) and det["type"] in TYPES and det.get("label"), f"{t}.{it['id']}: {det}"
+                assert sug.get("opensOn") in sug.get("values", []), f"{t}.{it['id']}: opensOn is one of the values"
+            if sug.get("details"):
+                assert any(classify(v) == "unknown" for v in sug["values"]), f"{t}.{it['id']}: a check needs 'לא נבדק'"
+
+    # display logic: evaluator, audit, suggested fixes
+    assert condition_value("project.additionalDetails.a != 'לא'", {}) is True, "a negated condition opens on empty"
+    assert condition_value("['x', 'y'].includes(project.additionalDetails.a)", {"a": "y"}) is True
+    assert condition_value("project.additionalDetails.l.includes('b')", {}) is False, "a member of empty is empty"
+    assert condition_value("project.additionalDetails.l", {"l": []}) is True, "[] is truthy, as in JavaScript"
+    assert condition_value("project.additionalDetails.n == 7", {"n": "7"}) is True, "loose equality"
+    assert condition_value("project.additionalDetails.a == 'x' && project.additionalDetails.b == 'y'",
+                           UDict(a="x")) is UNKNOWN, "a field not under test is unknown"
+    assert condition_value({"logic": "or", "conditions": [{"field": "a", "operator": "contains", "value": "ב"}]},
+                           {"a": ["א", "ב"]}) is True, "structured contains works on a list (client semantics)"
+    assert [classify(o) for o in ("לא נבדק", "אין צו מבנה מסוכן", "הנכס אינו בתחום", "הוכרז")] == \
+        ["unknown", "negative", "negative", "positive"]
+    # the same mistakes in other shapes - not only antiquities (an in-memory form)
+    from formlogic import audit, _topic_match  # noqa: E402
+    assert classify("הנכס אינו מוגדר כמבנה מסוכן, אך מבנה סמוך מוגדר כמסוכן") == "positive", "a qualified 'no' is a finding"
+    assert _topic_match("מסוכנ", "המסוכנימ"), "prefix + plural"
+    rows = [{"fields": [
+        {"name": "riskNotes", "type": "textarea", "label": "פירוט מבנים מסוכנים"},
+        {"name": "loanKind", "type": "radio", "label": "סוג ההלוואה", "values": ["מכוונת", "לא מכוונת"]},
+        {"name": "loanFile", "type": "text", "label": "מספר תיק ההלוואה"},
+        {"name": "dangerous", "type": "radio", "label": "מבנה מסוכן",
+         "values": ["הוכרז מבנה מסוכן", "אין צו", "לא נבדק"]},
+        {"name": "dangerousCheckDate", "type": "date", "label": "תאריך בדיקת רשימת המבנים המסוכנים"},
+        {"name": "oldCheck", "type": "checkbox", "label": "בדיקה ישנה", "hidden": True},
+        {"name": "oldCheckPhoto", "type": "image", "label": "צילום הבדיקה הישנה"},
+        {"name": "plansNearby", "type": "radio", "label": "תוכניות בהפקדה בסביבה", "values": ["קיימות", "אין"]},
+        {"name": "antennasMap", "type": "image", "label": "צילום אנטנות סלולריות (GovMap)"}]}]
+    mem = {"schema": {"s": rows}, "metadata": {"sections": {"s": {"title": "בדיקות"}}}}
+    got = {(f["kind"], f["path"]): f for f in audit(mem)}
+    assert ("ungated", "dangerousCheckDate") in got and "לא נבדק" not in got[("ungated", "dangerousCheckDate")]["suggest"] \
+        and "אין צו" in got[("ungated", "dangerousCheckDate")]["suggest"], "a check date opens on every checked answer"
+    assert ("ungated", "riskNotes") in got, "a detail placed before its question is found"
+    assert ("ungated", "loanFile") not in got, "the other fields of a 'סוג ...' question are not its details"
+    assert not any(p == "oldCheckPhoto" for _, p in got), "a hidden question opens nothing"
+    assert ("no-unchecked-answer", "plansNearby") in got, "a planning check without 'לא נבדק'"
+    assert ("check-without-question", "antennasMap") in got, "evidence of a check with no question"
+
+    run(os.path.join(S, "audit_form.py"), form, work, "--ops-out", os.path.join(work, "fix_ops.json"))
+    findings = json.load(open(os.path.join(work, "audit.json"), encoding="utf-8"))
+    kinds = {(f["kind"], f["path"]) for f in findings}
+    assert ("ungated", "antiquitiesMap") in kinds, "the map shown for every answer is found"
+    assert ("opens-unanswered", "dangerousDetails") in kinds, "a negated condition is found"
+    amap = next(f for f in findings if f["path"] == "antiquitiesMap")
+    assert amap["suggest"] == "project.additionalDetails.antiquitiesSite == 'הנכס בתחום אתר עתיקות'", amap
+    report = open(os.path.join(work, "audit.md"), encoding="utf-8").read()
+    assert "מפת התנאים" in report and "| לא נבדק |" in report
+    out = run(os.path.join(S, "check_ops.py"), form, os.path.join(work, "fix_ops.json"))
+    assert "0 errors" in out and "FIX " not in out, "the suggested fixes pass and leave nothing to fix\n" + out
 
     # report_inventory + gap_check on the fixture report
     outline = os.path.join(work, "outline.json")

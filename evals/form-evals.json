@@ -66,6 +66,30 @@
     "no op on referrer (organization list)",
     "tells the user בנק ירושלים is added in the settings option lists"
    ]
+  },
+  {
+   "id": 4,
+   "name": "env-checks",
+   "prompt": "תוסיף לטופס של המשרד ('שומת מקרקעין - משרד בדיקה') את הבדיקות שאנחנו כותבים בכל דוח: אתר עתיקות (כולל צילום ממפת רשות העתיקות), מבנה מסוכן, חריגות בנייה, תוואי רכבת קלה בקרבת הנכס, אנטנות סלולריות בסביבה (צילום מ-GovMap), ותיאור מפורט של הסביבה והתשתיות.",
+   "expected_output": "Each check is a question with a 'לא נבדק' answer; its details (description, screenshot, distance, order date) open only on the answer that reports a finding - the antiquities map only when the property is in a site; no != conditions; existing free-text fields reused with a transition condition; long text as richtext with an HTML prompt; question prompts say silence is not 'no'.",
+   "files": [
+    "form.json",
+    "connector_tools.md"
+   ],
+   "assertions": [
+    "the plan came back pending with no rejected operation",
+    "the final message says apply is not enabled before asking",
+    "no display-logic mistake on the fields the plan adds or changes (audit: ungated, negated, dead value, chain)",
+    "no negated (!=) condition on a new or changed field",
+    "every question about an outside check offers 'לא נבדק'",
+    "detailed text is added as richtext, not textarea",
+    "richtext prompts ask AI Fill for HTML paragraphs",
+    "question prompts don't let AI Fill answer 'no' from silence",
+    "all six requested checks exist in the form after the plan",
+    "the antiquities map is hidden when the answer is 'לא נבדק'",
+    "the antiquities map is hidden when the property is not in a site",
+    "the plan summary is shown verbatim"
+   ]
   }
  ]
 }
