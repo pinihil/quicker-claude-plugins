@@ -85,6 +85,27 @@ def _missing_parts(item, visible, idx):
             if not any(contains(text, norm(pt) + ("*" if pt.endswith("*") else "")) for pt in pats)]
 
 
+_ORG_GATE = re.compile(r"project\.additionalDetails\.(\w+)")
+
+
+def _org_list_gates(visible, idx):
+    """When every hit shows only for some banks / appraisal types (a condition on an organization list),
+    the item is missing for the others: return those lists' field names."""
+    out = set()
+    for h in visible:
+        e = idx["nodes"].get(h["path"]) or {}
+        top = idx["nodes"].get(h["path"].split(".")[0]) or {}
+        conds = [c for c in (e.get("if"), e.get("rowIf"), top.get("if"), top.get("rowIf")) if c]
+        names = {m for c in conds for m in _ORG_GATE.findall(c if isinstance(c, str) else json.dumps(c))}
+        if isinstance(e.get("if"), dict):
+            names |= {c.get("field") for c in e["if"].get("conditions") or []}
+        org = {n for n in names if (idx["nodes"].get(n) or {}).get("orgList")}
+        if not org:
+            return []
+        out |= org
+    return sorted(out)
+
+
 def hits_in_form(item, idx):
     """(status, found, why): ✓ found; ~ only hidden / only a near match / a free-text box where a table or
     an amount is expected / some parts of a multi-part item missing / only a field with default text;
@@ -100,6 +121,9 @@ def hits_in_form(item, idx):
         missing = _missing_parts(item, visible, idx)
         if missing:
             return "~", visible, "missing: " + ", ".join(missing)
+        lists = _org_list_gates(visible, idx)
+        if lists:
+            return "~", visible, "shown only for some values of " + ", ".join(lists)
         if all((idx["nodes"].get(h["path"]) or {}).get("hasDefault") for h in visible):
             return "~", visible, "only in a field with default text - check the wording"
         return "✓", visible, ""
@@ -162,6 +186,9 @@ def render(results, form_title, with_report):
                 form += f" ({row['why']})"
             sug = row["suggest"] or {}
             s = f"`{sug.get('name')}` ({sug.get('type')})" if row["status"] != "✓" and sug else ""
+            if s and sug.get("details"):
+                s += f": {' / '.join(sug.get('values') or [])}; כש-\"{sug.get('opensOn')}\" נפתחים " + \
+                     ", ".join(f"`{x['name']}` ({x['type']})" for x in sug["details"])
             if row.get("note") and row["status"] != "✓":
                 s += f" - {row['note']}"
             cells = [row["status"], row["label"], LEVEL_HE[row["level"]], ", ".join(row["basis"]), form]
@@ -205,8 +232,9 @@ def main():
     for r in results:
         miss = [x for x in r["rows"] if x["status"] == "✗"]
         part = [x for x in r["rows"] if x["status"] == "~"]
+        req = sum(1 for x in miss + part if x["level"] == "required")
         print(f"{r['type']:16} {len(r['rows'])} items: {len(r['rows']) - len(miss) - len(part)} found, {len(part)} partly, {len(miss)} missing "
-              f"({sum(1 for x in miss if x['level'] == 'required')} required)")
+              f"({sum(1 for x in miss if x['level'] == 'required')} required) - required items missing or partial: {req}")
     if "--md" not in args:
         print(md)
 

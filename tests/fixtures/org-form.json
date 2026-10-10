@@ -204,6 +204,44 @@
             ]
           }
         ]
+      },
+      {
+        "fields": [
+          {
+            "name": "antiquitiesSite",
+            "type": "radio",
+            "label": "אתר עתיקות",
+            "values": [
+              "הנכס אינו בתחום אתר עתיקות",
+              "הנכס בתחום אתר עתיקות",
+              "לא נבדק"
+            ]
+          },
+          {
+            "name": "antiquitiesMap",
+            "type": "image",
+            "label": "מפת אתרי עתיקות (צילום)"
+          },
+          {
+            "name": "dangerousBuilding",
+            "type": "select",
+            "label": "סטטוס מבנה מסוכן",
+            "values": [
+              "אין צו מבנה מסוכן",
+              "הוכרז מבנה מסוכן",
+              "לא נבדק"
+            ],
+            "aiConfig": {
+              "prompt": "מהודעת הרשות בלבד. אם אין מסמך - השאר ריק."
+            }
+          },
+          {
+            "name": "dangerousDetails",
+            "type": "textarea",
+            "label": "פירוט הצו",
+            "if": "project.additionalDetails.dangerousBuilding != 'אין צו מבנה מסוכן'"
+          }
+        ]
       }
     ],
     "valueFields": [

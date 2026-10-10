@@ -87,8 +87,14 @@ quicker-claude-plugins/
 - **סקריפטים משותפים** (`docx_outline.py`, `docxlib.py`): לכל סקיל עותק משלו, כדי שכל סקיל יעבוד גם
   לבד. משנים באחד ומעתיקים לשני - `check_plugin.py` נכשל אם העותקים שונים.
 - **כללי השרת בסקיל הטפסים** (`check_ops.py`, `formlib.py`) מחקים את מנוע העריכה של Quicker
-  (`form-template-ops.js`, `form-sync-fields.js`, `form-option-lists.js`). שינוי בכללים בשרת = עדכון
-  שם, ועדכון הסטטוסים ב-`tests/fixtures/form-ops.json` (שנבדקו מול המנוע). את קוד המנוע עצמו לא מעתיקים לכאן.
+  (`form-template-ops.js`, `form-sync-fields.js`, `form-option-lists.js`), ומאוקטובר 2026 גם את בדיקת ערכי
+  התנאים (`validateConditionInForm`) ואת בדיקת ערך ברירת המחדל (`checkDefaultValue`) ב-`form-template-ops.js`
+  וב-`form-template-plans.js`. שינוי בכללים בשרת = עדכון שם, ועדכון הסטטוסים ב-`tests/fixtures/form-ops.json`
+  (שנבדקו מול המנוע). את קוד המנוע עצמו לא מעתיקים לכאן.
+- **לוגיקת התצוגה** (`formlogic.py`) קוראת תנאים כמו הדפדפן: מחרוזת היא ביטוי של AngularJS `$eval`, ותנאי
+  מובנה עובד לפי `client/app/common/condition-evaluator.js`. שינוי באחד מהם = עדכון `formlogic.py`
+  והבדיקות ב-`test_form_skill.py`. לתשומת לב: הספרייה `angular-expressions` ב-npm חוסמת קריאה ל-`.includes()`,
+  והדפדפן לא. לכן בתבניות Word משתמשים ב-`| includes:`, ובטופס ב-`.includes()`.
 - **בסיס הידע של התקנים** (`references/standards.md`, `assets/checklists.json`) מתוארך לאוקטובר 2026.
   הוועדה לתקינה שמאית מחדשת תקנים כל כמה חודשים (תוכנית 2027: 10.1, 14.1, 15.1, 19.1) - לעבור על
   הרשימה ב-gov.il פעם ברבעון ולעדכן.

@@ -50,7 +50,11 @@ prints the template's own picture / ignores the options. A tag whose expression 
 
 ## 2. Questionnaire fields
 
-Every field of the chosen form, at `p.ad.<name>`. The raw form types and how to print them:
+Every field of the chosen form, at `p.ad.<name>`. A field the project left empty prints the form's
+**default value** when it has one and its display conditions hold (the export applies defaults the way
+the edit form does - October 2026), so boilerplate the office keeps as a field default (bank notes,
+declarations) prints even in projects nobody opened. Don't hard-code that text next to the tag. The raw
+form types and how to print them:
 
 | form type | example tag | notes |
 |---|---|---|
@@ -215,9 +219,6 @@ and list the choice under decisions.
   "שווי הנכס לאחר הפחתה ... ₪" - whether that amount is saved with the project is unconfirmed. Until
   confirmed: print the percentage, or `{p.ad.SummeryPer4 > 0 ? (p.ad.SummeryPer4 | currency) + ' ₪' : ''}`
   flagged **חשוב** (test on a real project). Top-level `quickSalePrice` from old templates: the linter warns.
-- Groups nested three levels deep (owners/rights inside `nesachTaboHachirot`, borrowers/rights inside
-  `nesachTaboMashcanta`, beneficiaries inside `nesachTaboNote`) are missing from the variables tool's
-  reply (nameless items) but exist in the form - the catalog has them.
 - Whether production removes the empty paragraph that a tag-only line leaves behind (stock
   easy-template-x keeps it - see template-syntax.md §4). The skill avoids tag-only lines unless the
   plan asks for `"block_style": "own"`.

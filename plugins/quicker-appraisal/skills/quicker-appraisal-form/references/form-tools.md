@@ -26,8 +26,10 @@ As implemented in Quicker (October 2026). Tool names appear with the connector's
   `applyAvailable: false` (with a `nextStep` saying so) - check before promising anything.
   -> Never promise a change you can't apply. Plan, show, and tell the user exactly what to enable -
   or offer the alternative: the change list for the form builder (הגדרות ← טפסי שומה מותאמים).
-- Not editable by any op: a field's `defaultValue` (pre-filled text), a card's (row's) title and
-  condition, a section's condition (sections have none). These are form-builder jobs - list them.
+- Editable by ops since the October 2026 update: a field's `defaultValue`, a card's (row's) title,
+  sub-heading, help text, condition and AI prompt (`update_row`), a section's title, icon and AI prompt
+  (`update_section`). Still not: a condition on a whole section (sections have none) and `read` /
+  `readNumber` / `html` fields - form-builder jobs.
 
 ## 2. Read tools
 
@@ -66,15 +68,29 @@ Nothing changes. Each op is checked on the form as earlier ops left it, in order
 
 | op | shape |
 |---|---|
-| `add_field` | `{section: "<sectionKey>" \| group: "<group path>", after?: "<sibling name>", field: {name, label, type, values?, class?, explan?, placeholder?, required?, suffix?, limit?, systemPath?, if?, aiConfig?: {prompt}}}` - exactly one of `section` / `group` |
+| `add_field` | `{section: "<sectionKey>" \| group: "<group path>", after?: "<sibling name>", field: {name, label, type, values?, class?, explan?, placeholder?, required?, suffix?, limit?, systemPath?, if?, aiConfig?: {prompt}, defaultValue?}}` - exactly one of `section` / `group` |
 | `add_group` | `{section \| group, after?, definition: {groupName, title, subTitle?, explan?, if?, aiConfig?, fields: [field or nested {groupName, ...}]}}` |
-| `add_section` | `{key, title, tab: "<tab key>", icon?: "fa-...", after?: "<section key in that tab>"}` |
-| `update_field` | `{path, set: {...}}` - field: `label explan aiConfig if class suffix limit placeholder required type`; group: `title subTitle explan if aiConfig`. `null` removes an optional property. No `name`/`groupName` |
+| `add_section` | `{key, title, tab: "<tab key>", icon?: "fa-...", after?: "<section key in that tab>", aiConfig?: {prompt}}` |
+| `update_field` | `{path, set: {...}}` - field: `label explan aiConfig if class suffix limit placeholder required type defaultValue`; group: `title subTitle explan if aiConfig`. `null` removes an optional property. No `name`/`groupName` |
+| `update_row` | `{field: "<a top-level field of the card>", section?, set: {title?, subTitle?, subHeader?, explan?, if?, aiConfig?, icon?}}` - a card (a plain row of fields), named by a field in it. A group row is a group: `update_field` on its path |
+| `update_section` | `{key, set: {title?, icon?, aiConfig?}}` |
 | `add_options` / `remove_options` | `{path, values: [...]}` - choice fields only, not organization lists |
 | `move_field` | `{path, toSection, after?}` - top-level fields/groups only |
 | `hide_field` / `show_field` | `{path}` |
 | `remove_field` | `{path}` |
 | `set_form_props` | `{title?, description?, appraisalTypes?, isDefault?}` |
+
+`defaultValue` - what an **empty** field gets: when the form opens, and in the Word export (only where
+the field's display conditions hold - a hidden detail gets no default). Saved values are never replaced;
+the plan says how many projects already hold one. Shapes: text (≤4000; rich text ≤8000, plain
+paragraphs become `<p>`), an option of a select/radio, a list of options for a checkboxList, a number,
+`true`/`false` for a checkbox, `YYYY-MM-DD` for a date. No default on image / html / read fields.
+
+Conditions are checked **against the form they land in**: every field read exists, a checkbox is
+compared with `true`/`false`, a number field with a number, a choice field with one of its options
+(organization lists: the office's list; or a value projects already saved). Otherwise the field would
+never show - the plan is rejected, with "האם התכוונת ל..." when an option is close. `check_ops.py`
+checks the same before you plan.
 
 Paths are `additionalDetails` names joined by dots: `squareMeter`, `borrowers.borrowerName`,
 `perutNesachTabo.nesachTaboOwner.nesachTaboName`. A name repeated in two sections can't be addressed
@@ -105,14 +121,14 @@ a field already hidden -> `no_op` (not an error). A plan where everything is `no
   follow `suggestion`) and plan again. Don't apply the "good part" separately without telling the user.
 - `projectsOnForm` counts projects that open this form by appraisal type and the office default
   (`project.formTemplateId` is not used by the app).
-- `byPath` is filled **only for `remove_field` and type changes** (data in the field, Word templates
-  that read it). For hide, label, condition and option changes it stays empty - "not checked", not "no
-  template reads it". A check plan with `remove_field` (never applied) lists the templates of any field.
-- `summaryHe` is terse about conditions ("תנאי התצוגה יתעדכן") and doesn't know a field's group or card
-  ("יוצג תמיד" for a column of a group that has its own condition; a field placed in a conditional card
-  without a word about it). Show it as is, and add a plain-Hebrew line under it where it could mislead
-  (the old and new condition, "רק בתוך הקבוצה, שמוצגת כש...").
-- `expiresAt` is UTC - tell the user the time in Israel time.
+- `byPath` lists data and Word templates for removals, type changes, **hidden fields and new
+  conditions** (field or card). `impact.wordTemplatesStillPrinting` turns the last two into lines
+  ("... מודפס ב-3 תבניות Word ... - כשתנאי התצוגה לא מתקיים ... יודפס ריק") that `summaryHe` already
+  includes: those templates should wrap the field in the same condition (template skill).
+- `summaryHe` says when each field is shown ("- מוצג רק כאשר "סוג" הוא "שומה מורחבת" וגם ..."),
+  including the condition of the card a field joins and of the groups around it, and names untitled
+  groups by where they sit. Show it as is; add a line only where it still could mislead.
+- `expiresAt` is UTC - tell the user the time in Israel time (`change_report.py` writes it so).
 - **Show the user `summaryHe` exactly as written**, plus the impact lines that matter (projects with
   data in touched fields, Word templates that read them, projects moving between forms), plus your own
   design table (why each field, where it came from). Then ask for explicit approval.
@@ -159,3 +175,8 @@ a field already hidden -> `no_op` (not an error). A plan where everything is `no
 | "מאז התוכנית השתנו נתונים..." | data now blocks an op | plan again without it (hide instead) |
 | "התוצאה שונה ממה שהוצג למשתמש" | engine changed between plan and apply | plan again and show again |
 | "כבר יש טופס של הארגון לסוג השומה ..." | appraisal type clash | create with `[]` / remove the type from the other form first |
+| "תנאי התצוגה משווה את ... ל"...", שאינו אחת מהאפשרויות שלו ... האם התכוונת ל: ..." | a condition on a value the field can't hold | copy the option text exactly (`form_index.md`); for an organization list `get_option_list` |
+| "... אבל זו תיבת סימון ששומרת כן/לא - משווים ל-true או false" | checkbox compared with text | `=== true` / `=== false` |
+| "... שדה מספרי, לטקסט ..." | number field compared with text | compare with a number |
+| "ברירת המחדל ... אינה אחת מהאפשרויות של השדה" | default not an option | an option, exactly as written |
+| "... היא קבוצה חוזרת - את הכותרת, התנאי וההנחיה שלה משנים ב-update_field" | `update_row` on a group | `update_field` with the group's path |

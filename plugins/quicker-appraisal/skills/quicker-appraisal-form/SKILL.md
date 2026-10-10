@@ -47,6 +47,11 @@ unless asked; show tables.
    among your tools, or when a plan reply says `applyAvailable: false` (Quicker's default for an
    office). Then say so *before* asking for approval, so the user isn't asked to approve something
    that won't happen.
+8. **Show only what applies.** Much of a form is a question and the details it opens (אתר עתיקות ->
+   the map; מבנה מסוכן -> the order). Details open only on the answer they describe - the antiquities
+   map on "בתחום", not on "אינו בתחום" or "לא נבדק" - and checks from an outside source always offer
+   "לא נבדק". A map upload under "לא נבדק" is the kind of thing that makes appraisers stop trusting a
+   form.
 
 **Quicker paths** (write Hebrew paths with ←):
 - the office's option lists (גורם מפנה, מטרת השומה, סוג נכס...): הגדרות ← אפשרויות בחירה ← אפשרויות
@@ -84,7 +89,15 @@ python3 $S/form_index.py form.json --find "ריצוף"   # fields whose label/na
 ```
 Read `work/form_index.md`: tabs, sections, every field with its path, type, options, condition,
 `-> p.x` links, `[org list]` (options owned by the office settings), `[hidden]`, `[AI]`, and groups
-three levels deep. Note the form's `version` - the plan is checked against it.
+three levels deep (the deepest level). Note the form's `version` - the plan is checked against it.
+
+```bash
+python3 $S/audit_form.py form.json work/ [--section <key>]   # -> work/audit.md: display logic as appraisers see it
+```
+It lists details shown for every answer of their question, conditions that compare to options that
+don't exist, negated conditions, broken chains, checks with no "לא נבדק", and a "מפת התנאים" (what
+each answer shows). Read it for the sections you'll touch: your new fields must not repeat those
+patterns, and existing problems go to the findings (Scope, step 5).
 
 ### 3. Read the office's formats
 
@@ -168,25 +181,39 @@ Rules of thumb (details and every server rule in `references/form-design.md`, op
   standard, no outline ids or internal names: it becomes the user's review table.
 - **Types by the value**: money -> `currency`; areas -> `currency` + `suffix: "מ\"ר"`; counts/years ->
   `number`; percentages/adjustments -> `textPom`; dates -> `date`; "source of the figure" -> `textSod`;
-  descriptive lists -> `selectOther`; text-driving choices -> `select`/`radio`; lists -> a group.
-- **Conditions** where the report has them (bank-specific, extended only, under construction, lease
-  exists), consistent with the template's sections.
+  descriptive lists -> `selectOther`; text-driving choices -> `select`/`radio`; lists -> a group;
+  **detailed text (descriptions, analysis, planning / legal status, reservations) -> `richtext`**, with
+  a prompt that asks for paragraphs ("פסקה לכל נושא, שורה ריקה בין פסקאות" - Quicker turns them into
+  rich-text paragraphs); `textarea` only for a few plain lines.
+- **Questions and their details** (`references/form-design.md` §8): each detail gets an `if` that
+  matches the answers it describes (`== 'X'`, `[...].includes(...)`) - never `!=` - with the option
+  text copied exactly; a detail of a detail carries its whole chain; checks from an outside source get
+  "לא נבדק"; the question's prompt says silence is not "no"; no default answer on a question. A block
+  of details can be one card with one condition (`update_row`). Conditions also where the report has
+  them (bank-specific, extended only, under construction), consistent with the template's sections.
+- **explan cites the source** for fields a standard requires ("נדרש לפי תקן 19 §4.15(ב)").
 - **AI Fill prompt on every new field and group**: the source document, what exactly, format, "if
   missing leave empty". Professional judgements (value, discounts, adjustments): tell AI Fill not to
   fill them.
-- Group depth ≤ 2 (deeper fields don't reach Word templates today). Org option lists (`referrer`,
+- Groups nest up to 3 levels, but keep the shallowest shape that fits (form-design.md §7). Org option lists (`referrer`,
   `appraisalPurpose`, `propertyType`, `propertyDestiny`, `appraisalType`) are changed in the settings,
   not by ops.
 - **A new report type on a form that serves other work** (the office has one form for everything):
   prefer a separate office form for that appraisal type (projects of the type open it automatically);
   when that's not possible, add one switch field (e.g. a checkbox "שומה לבטוחה לפי תקן 19") and put
   a condition on every new field. Recipe in `references/form-design.md` §13.
-- Fields marked `[default text]` in the index carry pre-filled text the ops can't change (form builder
-  only) - when adding a report type, read the defaults of notes / declaration fields; they may
-  contradict it. A card's (row's) condition can't be changed by ops either, and a field placed `after`
-  a field inside a conditional card joins that card and its condition (`check_ops.py` warns) - right
-  when the card serves the same case (kitchen floor in the "מטבח" card), and then say so in `why`.
-- Don't anchor `after` on a field with an empty label - the plan summary would show its internal name.
+- **Pre-filled text** (`default:` in the index): `defaultValue` on `add_field` / `update_field` - it
+  fills empty fields only (new projects, unfilled ones, and the Word export); saved text stays. When
+  adding a report type, read the defaults of notes / declaration fields - they may contradict it
+  (`references/form-design.md` §13, item 6).
+- **Cards and sections**: `update_row` (a card's heading, guidance, condition, AI prompt - named by a
+  field in it) and `update_section` (title, icon, AI prompt). A field placed `after` a field inside a
+  conditional card joins that card and its condition (`check_ops.py` warns; the plan summary says so) -
+  right when the card serves the same case (kitchen floor in the "מטבח" card).
+- Don't anchor `after` on a field with an empty label - the plan summary would show its internal name;
+  give it a label first (`update_field` `set.label`) when that is the right place.
+- An existing text box that becomes a question's detail gets a transition condition so old projects
+  keep their text (`references/form-design.md` §8, rule 9).
 - ≤ 60 ops per plan; a large redesign is several plans, each reviewed (by section is natural).
 
 ### 6. Check locally, then plan
@@ -194,9 +221,13 @@ Rules of thumb (details and every server rule in `references/form-design.md`, op
 ```bash
 python3 $S/check_ops.py form.json work/ops.json --md work/preview.md --payload work/payload.json
 ```
-It replays the ops on a copy of the form the way the server does. Fix every **ERR** (the server would
-reject the whole plan); read every **WARN** (missing prompt, a likely unit, a label very close to an
-existing field, depth 3...). It writes `preview.md` (the Hebrew review table, with your `why`) and
+It replays the ops on a copy of the form the way the server does - including the check that every
+condition compares a field with a value it can hold (an option, `true`/`false` for a checkbox, a number
+for a number field). Fix every **ERR** (the server would reject the whole plan); read every **WARN** (missing prompt, a likely unit, a label very close to an
+existing field, depth 3, long text not in `richtext`...). Then it audits the display logic of what the
+plan touches on the resulting form ("Display logic after the plan"): a **FIX** on a field you add or
+change is your mistake - fix it before planning (each comes with a ready condition); `[כבר בטופס]`
+marks what the form already had. It writes `preview.md` (the Hebrew review table, with your `why`) and
 `payload.json` (`why` stripped) - pass the payload's `templateId`, `ops`, `note` to
 `plan_form_template_changes`.
 
@@ -207,10 +238,13 @@ Read the plan reply (`references/form-tools.md` §5): any `rejected` op -> fix a
 
 Show the user, in Hebrew:
 1. Your review table (`preview.md` - trimmed to what matters) - what each field is, where it goes and
-   why (the report line or the standard).
+   why (the report line or the standard). When the plan adds or changes questions and details, include
+   the preview's "מפת התנאים" (what each answer shows) - it is how the user checks the logic.
 2. The plan's `summaryHe` **exactly as returned** - that is what will be applied. Where a line could
    mislead (conditions, a field inside a conditional group or card), add a plain line under it -
-   `references/form-tools.md` §5.
+   `references/form-tools.md` §5. It says when each field is shown ("מוצג רק כאשר ...") and which Word
+   templates will print a hidden or newly conditioned field empty. When summaryHe already lists every
+   field, keep your review table per section, not per field - the message is for an office manager.
 3. The impact in plain words: how many projects use the form, data or Word templates touched by a
    change, projects that move between forms, fields without an AI prompt.
 4. Findings you did *not* turn into changes (required items missing, decisions for them).
@@ -239,7 +273,12 @@ Only after an explicit approval of this plan: `apply_form_template_changes({plan
 Write `out/<form title>_form_changes.md` in the work folder (Hebrew) when apply is off or nobody is
 there to approve (it is then the manual-entry spec, marked "מתוכנן - טרם בוצע"), after applying more
 than a couple of ops, or when the user asks; a one- or two-op change applied in the chat needs no file.
-Contents:
+```bash
+python3 $S/change_report.py form.json work/ops.json --reply work/plan_reply.json \
+        --findings work/findings.md --out "out/<form title>_form_changes.md"   # [--applied <version>]
+```
+It writes everything but the findings (write those in `work/findings.md`, Hebrew), with the plan's
+expiry in Israel time. Contents:
 - the form and its version (before -> after, or planned);
 - the changes table with reasons;
 - for manual entry, every field's exact internal name, type, options, condition and prompt;
@@ -269,16 +308,18 @@ When the office has no form of its own for this work, or asks for a separate one
   referrer (bank) also gets none of the bank-specific fields: `form_index.md` "Conditions that name
   option values" lists the fields and cards each bank turns on - offer to add the new bank where its
   reports need them (exact text from `get_option_list({field: "referrer"})`, or
-  `.includes('מזרחי')`-style conditions). Entries marked `card:` / `row in` are row conditions - ops
-  can't change them; list those for the form builder.
+  `.includes('מזרחי')`-style conditions - the plan checks the value against the office's list).
+  Entries marked `card:` / `row in` are card conditions: `update_row` on a field of the card.
 - **"מה חסר לנו בטופס" / "האם הטופס מתאים לתקן 19"**: steps 2-4 and a findings report; plan only if
   asked.
+- **"תבדוק את הטופס" / "למה השדה הזה מופיע" / fixing conditions**: `audit_form.py ... --ops-out
+  work/fix_ops.json` writes `update_field` ops for the fixes it can express; review each (the
+  heuristics read labels), add "לא נבדק" options and question prompts where advised, then step 6.
 - **Undo / "תחזיר את הטופס למצב של אתמול"**: `list_form_template_versions` -> pick the version with the
   user (who/when/summary) -> `restore_form_template_version` -> show `summaryHe` and
   `fieldsWithDataNotInRestoredVersion` -> approval -> apply.
 - **Hide a field**: say what happens - data kept, AI Fill skips it, templates print it empty for new
-  projects. A hide plan doesn't list templates; a never-applied `remove_field` check plan does
-  (`references/form-design.md` §11). `show_field` brings it back.
+  projects; the plan names those templates. `show_field` brings it back.
 - **A new standard version** (e.g. 9.1 in 2027): gap_check with the relevant type, propose the new
   fields next to the old ones (old projects keep their data), and conditions or labels that say which
   applies.

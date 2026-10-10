@@ -22,7 +22,15 @@
     "ERR",
     "WARN",
     "NOOP",
-    "WARN"
+    "WARN",
+    "WARN",
+    "ERR",
+    "OK",
+    "OK",
+    "WARN",
+    "ERR",
+    "ERR",
+    "ERR"
   ],
   "ops": [
     {
@@ -246,6 +254,104 @@
         }
       },
       "why": "נכנס לכרטיס המותנה - צריך להיות WARN"
+    },
+    {
+      "op": "add_field",
+      "section": "legalFields",
+      "after": "antiquitiesMap",
+      "field": {
+        "name": "antiquitiesDeclaration",
+        "type": "richtext",
+        "label": "פירוט הכרזת אתר העתיקות",
+        "aiConfig": {
+          "prompt": "מאתר רשות העתיקות. כתוב HTML פשוט: <p> לכל פסקה. אם אין - השאר ריק."
+        }
+      },
+      "why": "פרט של שאלת העתיקות בלי תנאי - צריך FIX בלוגיקת התצוגה"
+    },
+    {
+      "op": "add_field",
+      "section": "legalFields",
+      "after": "antiquitiesDeclaration",
+      "field": {
+        "name": "antiquitiesImpact",
+        "type": "textarea",
+        "label": "השפעת אתר העתיקות על השווי",
+        "if": "project.additionalDetails.antiquitiesSite == 'בתחום אתר עתיקות'",
+        "aiConfig": {
+          "prompt": "אל תמלא - שיקול דעת של השמאי."
+        }
+      },
+      "why": "ערך שאינו אפשרות של השאלה - השרת דוחה את התוכנית (validateConditionInForm)"
+    },
+    {
+      "op": "update_row",
+      "field": "extendedNotes",
+      "set": {
+        "title": "שומה מורחבת - פרטים",
+        "explan": "מוצג רק בשומה מורחבת"
+      },
+      "why": "כותרת והסבר לכרטיס"
+    },
+    {
+      "op": "update_section",
+      "key": "valueFields",
+      "set": {
+        "aiConfig": {
+          "prompt": "ערכים ושיקול דעת - אל תמלא."
+        }
+      },
+      "why": "הנחיית סעיף"
+    },
+    {
+      "op": "update_field",
+      "path": "oldNotes",
+      "set": {
+        "defaultValue": "אין הערות מיוחדות."
+      },
+      "why": "ברירת מחדל לשדה ריק"
+    },
+    {
+      "op": "add_field",
+      "section": "valueFields",
+      "after": "marketValue",
+      "field": {
+        "name": "valueBasis",
+        "type": "select",
+        "label": "בסיס השווי",
+        "values": [
+          "שוק",
+          "כפוי"
+        ],
+        "defaultValue": "מימוש",
+        "aiConfig": {
+          "prompt": "x"
+        }
+      },
+      "why": "ברירת מחדל שאינה אפשרות"
+    },
+    {
+      "op": "add_field",
+      "section": "legalFields",
+      "after": "antiquitiesMap",
+      "field": {
+        "name": "antiquitiesNote",
+        "type": "text",
+        "label": "הערה לעתיקות",
+        "if": "project.additionalDetails.antiquitiesSite == 'כן'",
+        "aiConfig": {
+          "prompt": "x"
+        }
+      },
+      "why": "השוואה לאפשרות שלא קיימת"
+    },
+    {
+      "op": "update_row",
+      "field": "borrowers",
+      "set": {
+        "title": "x"
+      },
+      "why": "קבוצה - לא כרטיס"
     }
   ]
 }
